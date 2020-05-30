@@ -85,6 +85,16 @@ class Config(commands.Cog):
             await ctx.send(embed=Embed(
                 title=f"Unloaded Cog: {cog}"
             ))
+            
+    @cogs.group()
+    async def reload(self, ctx, cog):
+        coglist = [i.lower() for i in self.bot.cogs]
+        if cog in coglist:
+            self.bot.unload_extension(f"cogs.{cog}")
+            self.bot.load_extension(f"cogs.{cog}")
+            await ctx.send(embed=Embed(
+                title=f"Reloaded Cog: {cog}"
+            ))
 
     @cogs.group()
     async def load(self, ctx, cogout):
