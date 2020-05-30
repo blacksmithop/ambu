@@ -18,13 +18,13 @@ class Errors(commands.Cog):
             await ctx.send(embed=
                            Embed(title=f"Wait {'%.2f' % error.retry_after}s",
                                  description=f"Cooldown is `{error.cooldown.per}s`"))
-
+        '''
         if isinstance(error, commands.errors.MissingRequiredArgument):
             await ctx.send(embed=Embed(
                 title=f"Missing argument {error.param}",
                 description=f"```Usage: {self.bot.command_prefix}prefix set new-prefix```"
             ))
-
+        '''
 
 def setup(bot):
     bot.add_cog(Errors(bot))

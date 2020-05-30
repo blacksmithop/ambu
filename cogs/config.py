@@ -3,7 +3,7 @@ from discord import Embed, Member
 from discord.utils import get
 from os import listdir as l
 from asyncio import sleep
-
+from discord import Status, Game
 
 class Config(commands.Cog):
     """Handles the bot's configuration system.
@@ -15,6 +15,8 @@ class Config(commands.Cog):
     @commands.group()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def prefix(self, ctx):
+        """Shows the bot Prefix
+        """
         if ctx.invoked_subcommand is None:
             pfx = [i for i in self.bot.command_prefix if '<' not in i]
             await ctx.send(embed=Embed(
@@ -24,15 +26,20 @@ class Config(commands.Cog):
     @prefix.group(invoke_without_command=True)
     @commands.has_permissions(administrator=True)
     async def set(self, ctx, new_prefix):
+        """Sets the bot Prefix, adds playing status"""
         self.bot.command_prefix = new_prefix
         await ctx.send(embed=Embed(
-            title="New Prefix",
+            title="Prefix Set",
             description=f"Changed Prefix to {new_prefix}"
         ))
+        self.bot.unload_extension("cogs.errors")
+        self.bot.load_extension("cogs.errors")
+        await self.bot.change_presence(status=Status.online, activity=Game(name=f"{self.bot.command_prefix}help"))
 
     @prefix.group()
     @commands.has_permissions(administrator=True)
     async def mention(self, ctx):
+        """Sets the Prefix to Mention"""
         self.bot.command_prefix = [f'<@!{self.bot.user.id}> ', f'<@{self.bot.user.id}> ', self.bot.command_prefix, ]
         await ctx.send(f"<@{self.bot.user.id}>")
 
@@ -48,6 +55,7 @@ class Config(commands.Cog):
     @commands.group()
     @commands.is_owner()
     async def cogs(self, ctx):
+        """Shows available Cogs"""
         if ctx.invoked_subcommand is None:
             cogdir = ""
             for cog in l("cogs"):
@@ -61,7 +69,21 @@ class Config(commands.Cog):
             ))
 
     @cogs.group()
+    async def show(self, ctx):
+        """Shows loaded Cogs"""
+        coglist = self.bot.cogs
+        cogdir = ""
+        for cog in coglist:
+            cogdir += f'└──{cog}\n'
+
+        await ctx.send(embed=Embed(
+            title="Loaded Cogs ⚙",
+            description=f"```{cogdir}```"
+        ))
+
+    @cogs.group()
     async def unload(self, ctx, cog):
+        """Unloads a Cog"""
         coglist = [i.lower() for i in self.bot.cogs]
         if cog in coglist:
             self.bot.unload_extension(f"cogs.{cog}")
@@ -72,6 +94,7 @@ class Config(commands.Cog):
     @cogs.group()
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def reload(self, ctx, cog):
+        """Reloads a Cog"""
         coglist = [i.lower() for i in self.bot.cogs]
         if cog in coglist:
             self.bot.unload_extension(f"cogs.{cog}")
@@ -82,6 +105,7 @@ class Config(commands.Cog):
 
     @cogs.group()
     async def load(self, ctx, cogout):
+        """Loads a Cog"""
         for cog in l("cogs"):
             if ".py" in cog:
                 cogin = cog.replace(".py", "")
@@ -95,6 +119,7 @@ class Config(commands.Cog):
     @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def setchannel(self, ctx):
+        """Configures Channels"""
         if ctx.invoked_subcommand is None:
 
             base_role = get(ctx.guild.roles, name="Member")
@@ -151,6 +176,7 @@ class Config(commands.Cog):
 
     @setchannel.group()
     async def role(self, ctx):
+        """Configures Roles"""
         if get(ctx.guild.roles, name="Member") is None:
             await ctx.guild.create_role(name="Member")
         if get(ctx.guild.roles, name="Joined") is None:
@@ -164,6 +190,7 @@ class Config(commands.Cog):
     @commands.command()
     @commands.has_role("Joined")
     async def accept(self, ctx):
+        """Accepts and gets Member tag"""
         if ctx.channel.name == "rules":
             add = get(ctx.guild.roles, name="Member")
             await ctx.author.add_roles(add)
@@ -179,7 +206,7 @@ class Config(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     async def mute(self, ctx, member: Member,
                    num: int, unit: str):
-
+        """Mutes a member"""
         if self.bot.user == member or member == ctx.author:
             await ctx.send("Self-mute is disabled")
             return
@@ -210,6 +237,7 @@ class Config(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def unmute(self, ctx, member: Member):
+        """Unmutes a member"""
         muted = None
         for role in member.roles:
             if role.name == "Muted":
@@ -224,6 +252,7 @@ class Config(commands.Cog):
     @commands.is_owner()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def disable(self, ctx, cmd):
+        """Disables a Command"""
         for x in self.bot.get_command(cmd).commands:
             x.enabled = False
         self.bot.get_command(cmd).update()
@@ -232,13 +261,16 @@ class Config(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.has_permissions(manage_messages=True)
     async def purge(self, ctx, limit: int = 1):
+        """Deleted messages"""
         if ctx.invoked_subcommand is None:
             await ctx.channel.purge(limit=limit + 1)
-            done = await ctx.send(f"Cleaned {limit} messages")
+            await ctx.trigger_typing()
+            done = await ctx.send(f"Cleaning {limit} messages")
             await done.delete(delay=2)
 
     @purge.group(invoke_without_command=True)
     async def by(self, ctx, member: Member, limit: int = 10):
+        """Deleted messages by user"""
         def is_me(m):
             return m.author == member
 

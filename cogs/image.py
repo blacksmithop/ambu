@@ -23,7 +23,6 @@ class Image(commands.Cog):
         after = monotonic()
         ms = int((after - before) * 1000)
         msg = await ctx.channel.send(f"```🏓 Ping: {ms} ms```")
-        await ctx.trigger_typing()
         await msg.edit(content=f"{msg.content[:-3]}\n\n🤖 Latency: {int(self.bot.latency * 1000)} ms```")
 
     @commands.command()
