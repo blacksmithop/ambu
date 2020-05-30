@@ -21,15 +21,7 @@ class Config(commands.Cog):
                 title="Prefixes",
                 description=pfx[0]))
 
-    @prefix.error
-    async def prefix_cd(self, ctx, error):
-        if isinstance(error, commands.errors.CommandOnCooldown):
-            await ctx.send(embed=
-                           Embed(title=f"Wait {'%.2f' % error.retry_after}s",
-                                 description=f"Cooldown is `{error.cooldown.per}s`"))
-
     @prefix.group(invoke_without_command=True)
-    @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.has_permissions(administrator=True)
     async def set(self, ctx, new_prefix):
         self.bot.command_prefix = new_prefix
@@ -38,16 +30,7 @@ class Config(commands.Cog):
             description=f"Changed Prefix to {new_prefix}"
         ))
 
-    @set.error
-    async def missing_prefix(self, ctx, error):
-        if isinstance(error, commands.errors.MissingRequiredArgument):
-            await ctx.send(embed=Embed(
-                title=f"Missing argument {error.param}",
-                description=f"```Usage: {self.bot.command_prefix}prefix set new-prefix```"
-            ))
-
     @prefix.group()
-    @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.has_permissions(administrator=True)
     async def mention(self, ctx):
         self.bot.command_prefix = [f'<@!{self.bot.user.id}> ', f'<@{self.bot.user.id}> ', self.bot.command_prefix, ]
@@ -73,7 +56,7 @@ class Config(commands.Cog):
                     cogdir += f'└──{cog}\n'
 
             await ctx.send(embed=Embed(
-                title="cogs",
+                title="Cogs ⚙",
                 description=f"```{cogdir}```"
             ))
 
@@ -85,8 +68,9 @@ class Config(commands.Cog):
             await ctx.send(embed=Embed(
                 title=f"Unloaded Cog: {cog}"
             ))
-            
+
     @cogs.group()
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def reload(self, ctx, cog):
         coglist = [i.lower() for i in self.bot.cogs]
         if cog in coglist:
@@ -109,6 +93,7 @@ class Config(commands.Cog):
 
     @commands.group()
     @commands.has_permissions(administrator=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def setchannel(self, ctx):
         if ctx.invoked_subcommand is None:
 
@@ -153,7 +138,7 @@ class Config(commands.Cog):
             await logs.set_permissions(muted, send_messages=False, read_messages=False,
                                        read_message_history=False)
             await logs.set_permissions(base_role, send_messages=False, read_messages=True,
-                                       read_message_history=True,add_reactions=False)
+                                       read_message_history=True, add_reactions=False)
             await rules.send(content="Send ?accept to access rest of the server")
             for member in ctx.guild.members:
                 if not member.bot:
@@ -223,6 +208,7 @@ class Config(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(manage_roles=True)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def unmute(self, ctx, member: Member):
         muted = None
         for role in member.roles:
@@ -236,6 +222,7 @@ class Config(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def disable(self, ctx, cmd):
         for x in self.bot.get_command(cmd).commands:
             x.enabled = False
@@ -258,13 +245,6 @@ class Config(commands.Cog):
         await ctx.channel.purge(limit=limit, check=is_me)
         done = await ctx.send(f"Cleaned {limit} messages by {member.display_name}")
         await done.delete(delay=2)
-
-    @purge.error
-    async def purge_cd(self, ctx, error):
-        if isinstance(error, commands.errors.CommandOnCooldown):
-            await ctx.send(embed=
-                           Embed(title=f"Wait {'%.2f' % error.retry_after}s",
-                                 description=f"Cooldown is `{error.cooldown.per}s`"))
 
 
 def setup(bot):

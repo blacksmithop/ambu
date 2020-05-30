@@ -77,12 +77,15 @@ class Log(commands.Cog):
         old = before.roles
         new = after.roles
         rolechange = Embed().set_author(name=before, url=Embed.Empty, icon_url=before.avatar_url)
-        if len(old) > len(new):
-            role = [x for x in old if x not in new][0]
-            rolechange.description = f"Removed role `{role}`"
-        else:
-            role = [x for x in new if x not in old][0]
-            rolechange.description = f"Added role `{role}`"
+        try:
+            if len(old) > len(new):
+                role = [x for x in old if x not in new][0]
+                rolechange.description = f"Removed role `{role}`"
+            else:
+                role = [x for x in new if x not in old][0]
+                rolechange.description = f"Added role `{role}`"
+        except IndexError:
+            pass
         rolechange.color = self.l_clr
         rolechange.timestamp = dt.now()
         await channel.send(embed=rolechange)
