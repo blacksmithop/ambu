@@ -1,5 +1,5 @@
 from discord.ext import commands
-from discord import Embed, Member, Colour, Role
+from discord import Embed, Member, Colour, Role, Status, Guild, Emoji
 from discord.utils import get
 from datetime import datetime as dt
 
@@ -7,6 +7,7 @@ from datetime import datetime as dt
 class Log(commands.Cog):
     """Logging system.
     """
+
     def __init__(self, bot):
         self.bot = bot
         self.l_clr = Colour.from_rgb(251, 85, 8)
@@ -87,7 +88,7 @@ class Log(commands.Cog):
                 role = [x for x in new if x not in old][0]
                 rolechange.description = f"Added role `{role}`"
         except IndexError:
-            pass
+            return
         rolechange.color = self.l_clr
         rolechange.timestamp = dt.now()
         await channel.send(embed=rolechange)
@@ -161,12 +162,42 @@ class Log(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def init(self, ctx):
         guild = ctx.guild
-        category = get(guild.categories, name= "Text Channels")
+        category = get(guild.categories, name="Text Channels")
         basic = ["welcome", "rules", "testing", "logs"]
         for channel in basic:
             await guild.create_text_channel(channel, category=category)
         await ctx.send("Added text channels", delete_after=2)
         await ctx.message.delete(delay=3)
+
+    @commands.command()
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def stats(self, ctx):
+        guild : Guild = ctx.guild
+        member: Member
+        countb, counth, onlineb, onlineh = 0, 0, 0, 0
+        for member in guild.members:
+            if not member.bot:
+                counth += 1
+                if member.status in [Status.online, Status.idle]:
+                    onlineh += 1
+            else:
+                countb += 1
+                if member.status in [Status.online, Status.idle]:
+                    onlineb += 1
+
+        tchannels = ctx.guild.text_channels
+        vchannels = ctx.guild.voice_channels
+
+        stat = Embed()
+        load = self.bot.get_emoji(716609458523865129)
+        stat.title = f"{guild.name} {load}"
+        stat.add_field(name=f"Members {counth}", value=f"{onlineh}/{counth} online", inline=True)
+        stat.add_field(name=f"Bots {countb}", value=f"{onlineb}/{countb} online", inline=True)
+        stat.add_field(name=f"Channels", value=f"{len(tchannels)} Text, {len(vchannels)} Voice", inline=True)
+        stat.set_thumbnail(url=guild.icon_url)
+
+        await ctx.send(embed=stat)
+
 
 def setup(bot):
     bot.add_cog(Log(bot))

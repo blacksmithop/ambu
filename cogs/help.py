@@ -8,10 +8,10 @@ class Help(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        bot.remove_command("help")
+        #bot.remove_command("help")
 
     @commands.command()
-    async def help(self, ctx):
+    async def hlp(self, ctx):
         cogs = {"🛠 Config": "Configure the bot", "🧾 Log": "Setup logging", "📷 Image": "Image commands"}
         hembed = Embed()
         hembed.title = f"Cogs"
