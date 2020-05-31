@@ -5,6 +5,8 @@ from datetime import datetime as dt
 
 
 class Log(commands.Cog):
+    """Logging system.
+    """
     def __init__(self, bot):
         self.bot = bot
         self.l_clr = Colour.from_rgb(251, 85, 8)
@@ -21,7 +23,7 @@ class Log(commands.Cog):
                       )
 
         deleted = Embed(
-            description=f"Message deleted in {message.channel.mention}",color=self.l_clr
+            description=f"Message deleted in {message.channel.mention}", color=self.l_clr
         ).set_author(name=message.author, url=Embed.Empty, icon_url=message.author.avatar_url)
 
         deleted.add_field(name="Message", value=message.content)
@@ -36,7 +38,7 @@ class Log(commands.Cog):
         channel = get(before.author.guild.channels, name="logs"
                       )
         edited = Embed(
-            description=f"Message edited in {before.channel.mention} [Jump]({after.jump_url})",color=self.l_clr
+            description=f"Message edited in {before.channel.mention} [Jump]({after.jump_url})", color=self.l_clr
         ).set_author(name=before.author, url=Embed.Empty, icon_url=before.author.avatar_url)
         edited.add_field(name="Before", value=before.content, inline=False)
         edited.add_field(name="After", value=after.content, inline=False)
@@ -96,16 +98,14 @@ class Log(commands.Cog):
         if ctx.invoked_subcommand is None:
             for invite in await ctx.guild.invites():
                 await invite.delete()
-            rev = await ctx.send(f'Revoked Invites for {ctx.guild.name}')
-            await rev.delete(delay=2)
+            await ctx.send(f'Revoked Invites for {ctx.guild.name}', delete_after=2)
 
     @revoke.group()
     async def by(self, ctx, member: Member):
         for invite in await ctx.guild.invites():
             if invite.inviter == member:
                 await invite.delete()
-        rev = await ctx.send(f'Revoked Invites for {ctx.guild.name} by {member.display_name}')
-        await rev.delete(delay=2)
+        await ctx.send(f'Revoked Invites for {ctx.guild.name} by {member.display_name}', delete_after=2)
 
     @commands.group(invoke_without_command=True)
     @commands.has_permissions(manage_roles=True)
@@ -149,14 +149,24 @@ class Log(commands.Cog):
 
     @commands.command()
     @commands.has_role("Dev")
-    async def invite(self, ctx, member: Member):
+    async def invite(self, ctx, member: commands.Greedy[Member]):
         guild = ctx.guild
-        dev_role = get(guild.roles, name="Dev")
+
         channel = get(guild.channels, name="testing")
         await channel.set_permissions(guild.default_role, read_messages=False)
-        await channel.set_permissions(member, read_messages=True)
-        await channel.set_permissions(dev_role, read_messages=True, embed_links=True)
+        for m in member:
+            await channel.set_permissions(m, read_messages=True)
 
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def init(self, ctx):
+        guild = ctx.guild
+        category = get(guild.categories, name= "Text Channels")
+        basic = ["welcome", "rules", "testing", "logs"]
+        for channel in basic:
+            await guild.create_text_channel(channel, category=category)
+        await ctx.send("Added text channels", delete_after=2)
+        await ctx.message.delete(delay=3)
 
 def setup(bot):
     bot.add_cog(Log(bot))

@@ -5,6 +5,7 @@ from os import listdir as l
 from asyncio import sleep
 from discord import Status, Game
 
+
 class Config(commands.Cog):
     """Handles the bot's configuration system.
     """
@@ -125,9 +126,11 @@ class Config(commands.Cog):
             base_role = get(ctx.guild.roles, name="Member")
             yet_to_verify = get(ctx.guild.roles, name="Joined")
             muted = get(ctx.guild.roles, name="Muted")
+            dev_role = get(ctx.guild.roles, name="Dev")
+
             tchannels = ctx.guild.text_channels
             vchannels = ctx.guild.voice_channels
-            tchannels = [i for i in tchannels if i.name not in ["welcome", "rules", "logs"]]
+            tchannels = [i for i in tchannels if i.name not in ["welcome", "rules", "logs","testing"]]
 
             for channel in tchannels:
                 await channel.set_permissions(base_role,
@@ -164,6 +167,11 @@ class Config(commands.Cog):
                                        read_message_history=False)
             await logs.set_permissions(base_role, send_messages=False, read_messages=True,
                                        read_message_history=True, add_reactions=False)
+
+            testing = get(ctx.guild.channels, name="testing")
+            await testing.set_permissions(ctx.guild.default_role, read_messages=False)
+            await testing.set_permissions(dev_role, read_messages=True, embed_links=True)
+
             await rules.send(content="Send ?accept to access rest of the server")
             for member in ctx.guild.members:
                 if not member.bot:
@@ -171,7 +179,8 @@ class Config(commands.Cog):
 
             await ctx.send(embed=Embed(
                 title="Success",
-                description="Set Member as default role\n Set Joined as unverified role\n Muted as muted role"
+                description=""" Set Member as default role\n Joined as unverified role
+                \n Muted as muted role\n Dev as testing role"""
             ))
 
     @setchannel.group()
@@ -183,8 +192,10 @@ class Config(commands.Cog):
             await ctx.guild.create_role(name="Joined")
         if get(ctx.guild.roles, name="Muted") is None:
             await ctx.guild.create_role(name="Muted")
+        if get(ctx.guild.roles, name="Dev") is None:
+            await ctx.guild.create_role(name="Dev")
         await ctx.send(embed=Embed(
-            description="Created roles Member, Joined, Muted"
+            description="Created roles Member, Joined, Muted, Dev"
         ))
 
     @commands.command()
@@ -265,18 +276,17 @@ class Config(commands.Cog):
         if ctx.invoked_subcommand is None:
             await ctx.channel.purge(limit=limit + 1)
             await ctx.trigger_typing()
-            done = await ctx.send(f"Cleaning {limit} messages")
-            await done.delete(delay=2)
+            await ctx.send(f"Cleaning {limit} messages", delete_after=2)
 
     @purge.group(invoke_without_command=True)
     async def by(self, ctx, member: Member, limit: int = 10):
         """Deleted messages by user"""
+
         def is_me(m):
             return m.author == member
 
         await ctx.channel.purge(limit=limit, check=is_me)
-        done = await ctx.send(f"Cleaned {limit} messages by {member.display_name}")
-        await done.delete(delay=2)
+        await ctx.send(f"Cleaned {limit} messages by {member.display_name}", delete_after=2)
 
 
 def setup(bot):

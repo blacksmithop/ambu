@@ -13,6 +13,8 @@ async def fetch(session: object, url: object) -> object:
 
 
 class Image(commands.Cog):
+    """Image commands.
+    """
     def __init__(self, bot):
         self.bot = bot
 

@@ -1,9 +1,11 @@
 from discord.ext import commands
 from io import StringIO
 import sys
-from traceback import print_exc
+
 
 class Repl(commands.Cog):
+    """Execute Python code.
+    """
     def __init__(self, bot):
         self.bot = bot
 
