@@ -12,6 +12,8 @@ class Config(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.emote = self.bot.get_guild(716515460103012352)
+        self.tick = get(self.emote.emojis, id=716606024450310174)
 
     @commands.group()
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -20,8 +22,9 @@ class Config(commands.Cog):
         """
         if ctx.invoked_subcommand is None:
             pfx = [i for i in self.bot.command_prefix if '<' not in i]
+            info = get(self.emote.emojis, id=716617681540743190)
             await ctx.send(embed=Embed(
-                title="Prefixes",
+                title=f"{info} Prefixes",
                 description=pfx[0]))
 
     @prefix.group(invoke_without_command=True)
@@ -29,6 +32,7 @@ class Config(commands.Cog):
     async def set(self, ctx, new_prefix):
         """Sets the bot Prefix, adds playing status"""
         self.bot.command_prefix = new_prefix
+        await ctx.message.add_reaction(self.tick)
         await ctx.send(embed=Embed(
             title="Prefix Set",
             description=f"Changed Prefix to {new_prefix}"
@@ -42,6 +46,7 @@ class Config(commands.Cog):
     async def mention(self, ctx):
         """Sets the Prefix to Mention"""
         self.bot.command_prefix = [f'<@!{self.bot.user.id}> ', f'<@{self.bot.user.id}> ', self.bot.command_prefix, ]
+        await ctx.message.add_reaction(self.tick)
         await ctx.send(f"<@{self.bot.user.id}>")
 
     @commands.Cog.listener()
@@ -88,6 +93,7 @@ class Config(commands.Cog):
         coglist = [i.lower() for i in self.bot.cogs]
         if cog in coglist:
             self.bot.unload_extension(f"cogs.{cog}")
+            await ctx.message.add_reaction(self.tick)
             await ctx.send(embed=Embed(
                 title=f"Unloaded Cog: {cog}"
             ))
@@ -98,6 +104,7 @@ class Config(commands.Cog):
         """Reloads a Cog"""
         coglist = [i.lower() for i in self.bot.cogs]
         if cog in coglist:
+            await ctx.message.add_reaction(self.tick)
             self.bot.unload_extension(f"cogs.{cog}")
             self.bot.load_extension(f"cogs.{cog}")
             await ctx.send(embed=Embed(
@@ -111,6 +118,7 @@ class Config(commands.Cog):
             if ".py" in cog:
                 cogin = cog.replace(".py", "")
                 if cogin == cogout:
+                    await ctx.message.add_reaction(self.tick)
                     self.bot.load_extension(f"cogs.{cogin}")
                     await ctx.send(embed=Embed(
                         title=f"Loaded Cog: {cogin}"
@@ -171,7 +179,7 @@ class Config(commands.Cog):
             testing = get(ctx.guild.channels, name="testing")
             await testing.set_permissions(ctx.guild.default_role, read_messages=False)
             await testing.set_permissions(dev_role, read_messages=True, embed_links=True)
-
+            await ctx.message.add_reaction(self.tick)
             await rules.send(content="Send ?accept to access rest of the server")
             for member in ctx.guild.members:
                 if not member.bot:
@@ -194,6 +202,7 @@ class Config(commands.Cog):
             await ctx.guild.create_role(name="Muted")
         if get(ctx.guild.roles, name="Dev") is None:
             await ctx.guild.create_role(name="Dev")
+        await ctx.message.add_reaction(self.tick)
         await ctx.send(embed=Embed(
             description="Created roles Member, Joined, Muted, Dev"
         ))
@@ -203,6 +212,7 @@ class Config(commands.Cog):
     async def accept(self, ctx):
         """Accepts and gets Member tag"""
         if ctx.channel.name == "rules":
+            await ctx.message.add_reaction(self.tick)
             add = get(ctx.guild.roles, name="Member")
             await ctx.author.add_roles(add)
             remove = get(ctx.guild.roles, name="Joined")
@@ -229,6 +239,7 @@ class Config(commands.Cog):
             num = num * 60
         if unit in ['h', 'hr', 'hour', 'hours']:
             num = num * 60 * 60
+        await ctx.message.add_reaction(self.tick)
         await member.add_roles(muted_role)
 
         await ctx.send(embed=Embed(
@@ -254,6 +265,7 @@ class Config(commands.Cog):
             if role.name == "Muted":
                 muted = role
         if muted is not None:
+            await ctx.message.add_reaction(self.tick)
             await member.remove_roles(muted)
             await ctx.send(embed=Embed(
                 title=f"Unmuted {member.display_name}"
@@ -266,6 +278,7 @@ class Config(commands.Cog):
         """Disables a Command"""
         for x in self.bot.get_command(cmd).commands:
             x.enabled = False
+        await ctx.message.add_reaction(self.tick)
         self.bot.get_command(cmd).update()
 
     @commands.group(invoke_without_command=True)
@@ -275,6 +288,7 @@ class Config(commands.Cog):
         """Deleted messages"""
         if ctx.invoked_subcommand is None:
             await ctx.channel.purge(limit=limit + 1)
+            await ctx.message.add_reaction(self.tick)
             await ctx.trigger_typing()
             await ctx.send(f"Cleaning {limit} messages", delete_after=2)
 
@@ -286,6 +300,7 @@ class Config(commands.Cog):
             return m.author == member
 
         await ctx.channel.purge(limit=limit, check=is_me)
+        await ctx.message.add_reaction(self.tick)
         await ctx.send(f"Cleaned {limit} messages by {member.display_name}", delete_after=2)
 
 

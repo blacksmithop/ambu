@@ -6,7 +6,7 @@ from discord.errors import LoginFailure
 from discord.ext.commands.errors import ExtensionFailed
 
 basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=ERROR)
-bot = commands.Bot(command_prefix='?', description='Multi-purpose Discord Bot', case_insensitive=True)
+bot = commands.Bot(command_prefix='>', description='Multi-purpose Discord Bot', case_insensitive=True)
 try:
     token = e('token')
 except KeyError:

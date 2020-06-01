@@ -1,5 +1,5 @@
 from discord.ext import commands
-from discord import Embed, Member, Colour, Role, Status, Guild, Emoji
+from discord import Embed, Member, Colour, Role, Status, Guild
 from discord.utils import get
 from datetime import datetime as dt
 
@@ -11,6 +11,8 @@ class Log(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.l_clr = Colour.from_rgb(251, 85, 8)
+        self.emote = self.bot.get_guild(716515460103012352)
+        self.tick = get(self.emote.emojis, id=716606024450310174)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -53,6 +55,7 @@ class Log(commands.Cog):
                 if value and perm == 'manage_messages':
                     return
             await message.delete(delay=1)
+            #warn user
 
     @commands.Cog.listener()
     async def on_invite_create(self, invite):
@@ -122,6 +125,7 @@ class Log(commands.Cog):
             code = code.strip("#")
             code = tuple(int(code[i:i + 2], 16) for i in (0, 2, 4))
             clr = Colour.from_rgb(*code)
+            await ctx.message.add_reaction(self.tick)
             role = get(ctx.guild.roles, name=name)
             if role is not None:
                 await role.edit(color=clr)
@@ -137,6 +141,7 @@ class Log(commands.Cog):
     @color.group(invoke_without_command=True)
     async def give(self, ctx, member: Member, role: Role):
         await member.add_roles(role)
+        await ctx.message.add_reaction(self.tick)
         await ctx.send(embed=Embed(
             title=f"Added Role {role} to {member.display_name}", color=role.color, timestamp=dt.now()
         ))
@@ -144,6 +149,7 @@ class Log(commands.Cog):
     @color.group(invoke_without_command=True)
     async def remove(self, ctx, member: Member, role: Role):
         await member.remove_roles(role)
+        await ctx.message.add_reaction(self.tick)
         await ctx.send(embed=Embed(
             title=f"Removed Role {role} from {member.display_name}", color=role.color, timestamp=dt.now()
         ))
@@ -157,6 +163,7 @@ class Log(commands.Cog):
         await channel.set_permissions(guild.default_role, read_messages=False)
         for m in member:
             await channel.set_permissions(m, read_messages=True)
+        await ctx.message.add_reaction(self.tick)
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -172,7 +179,7 @@ class Log(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def stats(self, ctx):
-        guild : Guild = ctx.guild
+        guild: Guild = ctx.guild
         member: Member
         countb, counth, onlineb, onlineh = 0, 0, 0, 0
         for member in guild.members:
@@ -189,13 +196,13 @@ class Log(commands.Cog):
         vchannels = ctx.guild.voice_channels
 
         stat = Embed()
-        load = self.bot.get_emoji(716609458523865129)
+
+        load = get(self.emote.emojis, id=716609458523865129)
         stat.title = f"{guild.name} {load}"
         stat.add_field(name=f"Members {counth}", value=f"{onlineh}/{counth} online", inline=True)
         stat.add_field(name=f"Bots {countb}", value=f"{onlineb}/{countb} online", inline=True)
         stat.add_field(name=f"Channels", value=f"{len(tchannels)} Text, {len(vchannels)} Voice", inline=True)
         stat.set_thumbnail(url=guild.icon_url)
-
         await ctx.send(embed=stat)
 
 

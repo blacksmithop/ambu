@@ -1,6 +1,6 @@
 from discord.ext import commands
 from discord import Embed
-
+from discord import errors
 
 class Errors(commands.Cog):
     """Error handling.
@@ -25,7 +25,9 @@ class Errors(commands.Cog):
                 title=f"Missing argument",
                 description=f"```{error}```"
             ))
+        if isinstance(error, errors.HTTPException):
+            pass
 
-
+        
 def setup(bot):
     bot.add_cog(Errors(bot))

@@ -9,12 +9,17 @@ from time import monotonic
 
 async def fetch(session: object, url: object) -> object:
     async with session.get(url) as response:
-        return await response.text()
+        url = await response.text()
+        url = loads(url)
+        url = url['data']['children']
+        url = c(url)['data']
+        return url
 
 
 class Image(commands.Cog):
     """Image commands.
     """
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -55,10 +60,7 @@ class Image(commands.Cog):
     @commands.command()
     async def nature(self, ctx):
         async with ClientSession() as session:
-            url = await fetch(session, 'https://www.reddit.com/r/earthporn/new.json?sort=hot&limit=10')
-            url = loads(url)
-        url = url['data']['children']
-        url = c(url)['data']
+            url = await fetch(session, 'https://www.reddit.com/r/earthporn/new.json?sort=hot&limit=40')
         await ctx.send(embed=Embed(
             title="🌳", timestamp=dt.now(), url=f"https://reddit.com/{url['permalink']}"
         ).set_image(url=url['url']))
@@ -69,7 +71,7 @@ class Image(commands.Cog):
         subs = ['NSFW_GIF', 'adorableporn', 'porn', 'nsfw', 'nsfw_gifs']
         subs = c(subs)
         async with ClientSession() as session:
-            url = await fetch(session, f"https://www.reddit.com/r/{subs}/new.json?sort={c(['hot','top'])}&limit=30")
+            url = await fetch(session, f"https://www.reddit.com/r/{subs}/new.json?sort={c(['hot', 'top'])}&limit=30")
             url = loads(url)
         url = url['data']['children']
         url = c(url)['data']
@@ -80,6 +82,22 @@ class Image(commands.Cog):
         await ctx.send(embed=Embed(
             title="👙", timestamp=dt.now(), url=f"https://reddit.com/{url['permalink']}"
         ).set_image(url=url['url']))
+
+    @commands.command()
+    async def pics(self, ctx):
+        async with ClientSession() as session:
+            url = await fetch(session, 'https://www.reddit.com/r/pic/new.json?sort=hot&limit=40')
+            await ctx.send(embed=Embed(
+                title="🏕", timestamp=dt.now(), url=f"https://reddit.com/{url['permalink']}"
+            ).set_image(url=url['url']))
+
+    @commands.command()
+    async def astro(self, ctx):
+        async with ClientSession() as session:
+            url = await fetch(session, 'https://www.reddit.com/r/astrophotography/new.json?sort=hot&limit=40')
+            await ctx.send(embed=Embed(
+                title="🏕", timestamp=dt.now(), url=f"https://reddit.com/{url['permalink']}"
+            ).set_image(url=url['url']))
 
 
 def setup(bot):
