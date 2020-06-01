@@ -7,6 +7,11 @@ from json import loads
 from time import monotonic
 
 
+async def get(session: object, url: object) -> object:
+    async with session.get(url) as response:
+        return await response.text()
+
+
 async def fetch(session: object, url: object) -> object:
     async with session.get(url) as response:
         url = await response.text()
@@ -42,7 +47,7 @@ class Image(commands.Cog):
     @commands.command()
     async def dog(self, ctx):
         async with ClientSession() as session:
-            url = await fetch(session, 'https://dog.ceo/api/breeds/image/random')
+            url = await get(session, 'https://dog.ceo/api/breeds/image/random')
             url = loads(url)['message']
             await ctx.send(embed=Embed(
                 title="🐩", timestamp=dt.now(), url=url
@@ -51,7 +56,7 @@ class Image(commands.Cog):
     @commands.command()
     async def cat(self, ctx):
         async with ClientSession() as session:
-            url = await fetch(session, 'https://api.thecatapi.com/v1/images/search')
+            url = await get(session, 'https://api.thecatapi.com/v1/images/search')
             url = loads(url)[0]['url']
             await ctx.send(embed=Embed(
                 title="🐈", timestamp=dt.now(), url=url
