@@ -25,8 +25,10 @@ async def on_ready():
             except ExtensionFailed:
                 error(f"Failed to load {cog}")
 
+
 if __name__ == '__main__':
     try:
         bot.run(token)
+
     except LoginFailure:
         error("Token is Invalid")
