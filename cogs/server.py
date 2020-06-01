@@ -7,15 +7,15 @@ class Server(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.port = 8080
+        self.port = 9090
 
     async def webserver(self):
         async def handler(request):
             return web.Response(text=f"Running {self.bot.user.display_name} Bot")
 
-
         app = web.Application()
         app.router.add_get('/', handler)
+
         runner = web.AppRunner(app)
         await runner.setup()
         self.site = web.TCPSite(runner, 'localhost', self.port)

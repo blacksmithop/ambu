@@ -13,6 +13,7 @@ class Log(commands.Cog):
         self.l_clr = Colour.from_rgb(251, 85, 8)
         self.emote = self.bot.get_guild(716515460103012352)
         self.tick = get(self.emote.emojis, id=716606024450310174)
+        self.warn = get(self.emote.emojis, id=716614609192222810)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -38,15 +39,17 @@ class Log(commands.Cog):
         if before.author == self.bot.user:
             return
 
-        channel = get(before.author.guild.channels, name="logs"
-                      )
+        channel = get(before.author.guild.channels, name="logs")
+
         edited = Embed(
             description=f"Message edited in {before.channel.mention} [Jump]({after.jump_url})", color=self.l_clr
         ).set_author(name=before.author, url=Embed.Empty, icon_url=before.author.avatar_url)
-        edited.add_field(name="Before", value=before.content, inline=False)
-        edited.add_field(name="After", value=after.content, inline=False)
-        edited.timestamp = after.created_at
-        await channel.send(embed=edited)
+        if before.content and after.content:
+            edited.add_field(name="Before", value=before.content, inline=False)
+            edited.add_field(name="After", value=after.content, inline=False)
+            edited.timestamp = after.created_at
+        if edited.fields is not Embed.Empty:
+            await channel.send(embed=edited)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -55,7 +58,7 @@ class Log(commands.Cog):
                 if value and perm == 'manage_messages':
                     return
             await message.delete(delay=1)
-            #warn user
+            await message.channel.send(f"Invite links is chat is disabled! {self.warn}")
 
     @commands.Cog.listener()
     async def on_invite_create(self, invite):
