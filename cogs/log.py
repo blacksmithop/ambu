@@ -23,8 +23,7 @@ class Log(commands.Cog):
     async def on_message_delete(self, message):
         if message.author == self.bot.user:
             return
-        channel = get(message.author.guild.channels, name="logs"
-                      )
+        channel = get(message.author.guild.channels, name="logs")
 
         deleted = Embed(
             description=f"Message deleted in {message.channel.mention}", color=self.l_clr

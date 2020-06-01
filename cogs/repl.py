@@ -11,7 +11,7 @@ class Repl(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def repl(self, ctx, *, code):
+    async def exc(self, ctx, *, code):
         code = code.strip("`").strip(".py")
         old_stdout = sys.stdout
         redirected_output = sys.stdout = StringIO()

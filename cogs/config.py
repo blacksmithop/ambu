@@ -288,9 +288,6 @@ class Config(commands.Cog):
         """Deleted messages"""
         if ctx.invoked_subcommand is None:
             await ctx.channel.purge(limit=limit + 1)
-            await ctx.message.add_reaction(self.tick)
-            await ctx.trigger_typing()
-            await ctx.send(f"Cleaning {limit} messages", delete_after=2)
 
     @purge.group(invoke_without_command=True)
     async def by(self, ctx, member: Member, limit: int = 10):
@@ -300,8 +297,6 @@ class Config(commands.Cog):
             return m.author == member
 
         await ctx.channel.purge(limit=limit, check=is_me)
-        await ctx.message.add_reaction(self.tick)
-        await ctx.send(f"Cleaned {limit} messages by {member.display_name}", delete_after=2)
 
 
 def setup(bot):

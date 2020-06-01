@@ -11,16 +11,25 @@ class Help(commands.Cog):
         self.emote = self.bot.get_guild(716515460103012352)
         self.tick = get(self.emote.emojis, id=716926950857506846)
         self.client = get(self.emote.emojis, id=716927608876695603)
-        #bot.remove_command("help")
+        self.exec = get(self.emote.emojis, id=716607759772287027)
+        self.server = get(self.emote.emojis, id=716607969105543198)
+        self.wumpus = get(self.emote.emojis, id=716616213601714177)
+        bot.remove_command("help")
 
     @commands.command()
-    async def hlp(self, ctx, cog: str = None, sub: str = None):
+    async def help(self, ctx, cog: str = None, sub: str = None):
 
-        cogs = {"🛠 Config": "Configure the bot", "🧾 Log": "Setup logging", "📷 Image": "Image commands"}
+        cogs = {"🛠 Config": "Configure the bot", "🧾 Log": "Setup logging", "📷 Image": "Image commands",
+                f"{self.wumpus} Help": "Help",
+                f"{self.exec} Repl": f"Execute code",
+                f"{self.server} Server": "Run a webserver"
+                }
 
         cogcmds = {"config": ["prefix", "purge", "mute", "unmute", "setchannel", "cogs", "disable"],
                    "log": ["color", "revoke", "invite", "stats", "init"],
-                   "image": ["cat", "fox", "dog", "nature", "porn"]
+                   "image": ["cat", "fox", "dog", "nature", "porn"],
+                   "repl": ["exc"],
+                   "help": ["help"]
                    }
         cmds = {
             "prefix": ["Shows the bot Prefix", 5, None, None, ["set", "mention"]],
@@ -34,7 +43,14 @@ class Help(commands.Cog):
             "revoke": ["Revokes all invite links", None, "manage_guild, manage_messages", ["/ by mem[member]"], None],
             "invite": ["Invites members to testing channel", None, "has_role Dev", "mem[member],mem2[member],...", None],
             "stats": ["Statistics about the server", 10, None, None, None],
-            "init": ["Creates logging channels", None, "administrator", None, None]
+            "init": ["Creates logging channels", None, "administrator", None, None],
+            "cat": ["Random cat image", None, None, None, None],
+            "fox": ["Random fox image", None, None, None, None],
+            "dog": ["Random dog image", None, None, None, None],
+            "nature": ["Random nature image", None, None, None, None],
+            "porn": ["Random nature image", None, "is_nsfw", None, None],
+            "exc": ["Run Python code", None, "is_owner", "```py\nfrom math import pi```", None],
+            "help": ["Shows the help command", None, None, None, None]
         }
 
         subcmds = {
@@ -73,8 +89,9 @@ class Help(commands.Cog):
         param = ["Description", "Cooldown", "Permission"]
         if cog in cmds and sub is None:
             hembed.title = f"Command {cog} {self.tick}"
-            hembed.description = f"Do {self.bot.command_prefix}help [cmd] [subcmd] for more information"
             cmd = cmds[cog]
+            if cmd[4]:
+                hembed.description = f"Do {self.bot.command_prefix}help [cmd] [subcmd] for more information"
             i: int = 0
             for par in param:
                 hembed.add_field(name=par, value=cmd[i], inline=True)
@@ -89,10 +106,7 @@ class Help(commands.Cog):
             if cmd[4] is not None:
                 for c in cmd[4]:
                     scmds += f" `{c}`"
-            if scmds == "":
-                scmds = None
-
-            hembed.add_field(name="Sub-commands", value=scmds)
+                hembed.add_field(name="Sub-commands", value=scmds)
 
         if sub:
             if sub in cmds[cog][4]:

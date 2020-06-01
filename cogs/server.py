@@ -18,7 +18,7 @@ class Server(commands.Cog):
 
         runner = web.AppRunner(app)
         await runner.setup()
-        self.site = web.TCPSite(runner, 'localhost', self.port)
+        self.site = web.TCPSite(runner, '0.0.0.0', self.port)
         await self.bot.wait_until_ready()
         print(f"Running Webserver at: Port {self.port}")
         await self.site.start()
