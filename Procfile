@@ -1,1 +1,1 @@
-worker: heart.py
+worker: python3 heart.py
