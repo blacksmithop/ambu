@@ -3,127 +3,66 @@ from discord import Embed, Member
 from discord.utils import get
 from os import listdir as l
 from asyncio import sleep
-from discord import Status, Game
+from ambu.cogs.AddOns.db import BotConfig
 
 
-class Config(commands.Cog):
+class Admin(commands.Cog):
     """Handles the bot's configuration system.
     """
 
     def __init__(self, bot):
         self.bot = bot
-        self.emote = self.bot.get_guild(716515460103012352)
-        self.tick = get(self.emote.emojis, id=716606024450310174)
+        self.db = BotConfig()
+        self.guild = self.bot.get_guild(int(self.db.value(key="emotes")))
+        self.tick = get(self.guild.emojis, name="tick")
 
-    @commands.group()
+    @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def prefix(self, ctx):
         """Shows the bot Prefix
         """
         if ctx.invoked_subcommand is None:
-            pfx = [i for i in self.bot.command_prefix if '<' not in i]
-            info = get(self.emote.emojis, id=716617681540743190)
-            await ctx.send(embed=Embed(
-                title=f"{info} Prefixes",
-                description=pfx[0]))
-
-    @prefix.group(invoke_without_command=True)
-    @commands.has_permissions(administrator=True)
-    async def set(self, ctx, new_prefix):
-        """Sets the bot Prefix, adds playing status"""
-        self.bot.command_prefix = new_prefix
-        await ctx.message.add_reaction(self.tick)
-        await ctx.send(embed=Embed(
-            title="Prefix Set",
-            description=f"Changed Prefix to {new_prefix}"
-        ))
-        self.bot.unload_extension("cogs.errors")
-        self.bot.load_extension("cogs.errors")
-        await self.bot.change_presence(status=Status.online, activity=Game(name=f"{self.bot.command_prefix}help"))
-
-    @prefix.group()
-    @commands.has_permissions(administrator=True)
-    async def mention(self, ctx):
-        """Sets the Prefix to Mention"""
-        self.bot.command_prefix = [f'<@!{self.bot.user.id}> ', f'<@{self.bot.user.id}> ', self.bot.command_prefix, ]
-        await ctx.message.add_reaction(self.tick)
-        await ctx.send(f"<@{self.bot.user.id}>")
+            p = self.db.get(id=ctx.guild.id, key="prefix") or self.bot.command_prefix
+            await ctx.send(embed=Embed(title=f"Prefix for {ctx.guild.name}",
+                                       description=f"```{p}```",
+                                       color=0x40D7D7))
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
         channel = get(member.guild.channels, name="welcome")
         await channel.send(embed=Embed(
-            title=f"{member.display_name} has joined the server"
-        ))
+            title=f"Welcome to the server!", color=0x8722EB
+        ).set_author(icon_url=member.avatar_url, name=member.display_name))
         role = get(member.guild.roles, name="Joined")
         await member.add_roles(role)
 
     @commands.group()
-    @commands.is_owner()
     async def cogs(self, ctx):
-        """Shows available Cogs"""
-        if ctx.invoked_subcommand is None:
-            cogdir = ""
-            for cog in l("cogs"):
-                if ".py" in cog:
-                    cog = cog.replace(".py", "")
-                    cogdir += f'└──{cog}\n'
-
-            await ctx.send(embed=Embed(
-                title="Cogs ⚙",
-                description=f"```{cogdir}```"
-            ))
-
-    @cogs.group()
-    async def show(self, ctx):
         """Shows loaded Cogs"""
-        coglist = self.bot.cogs
+        if ctx.invoked_subcommand is None:
+            coglist = self.bot.cogs
+            cogdir = ""
+            for cog in coglist:
+                cogdir += f'└──{cog}\n'
+
+            await ctx.send(embed=Embed(
+                title="Loaded Cogs ⚙",
+                description=f"```{cogdir}```", color=0xEA0E0E
+            ))
+
+    @cogs.group()
+    async def all(self, ctx):
+        """Shows available Cogs"""
         cogdir = ""
-        for cog in coglist:
-            cogdir += f'└──{cog}\n'
-
-        await ctx.send(embed=Embed(
-            title="Loaded Cogs ⚙",
-            description=f"```{cogdir}```"
-        ))
-
-    @cogs.group()
-    async def unload(self, ctx, cog):
-        """Unloads a Cog"""
-        coglist = [i.lower() for i in self.bot.cogs]
-        if cog in coglist:
-            self.bot.unload_extension(f"cogs.{cog}")
-            await ctx.message.add_reaction(self.tick)
-            await ctx.send(embed=Embed(
-                title=f"Unloaded Cog: {cog}"
-            ))
-
-    @cogs.group()
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    async def reload(self, ctx, cog):
-        """Reloads a Cog"""
-        coglist = [i.lower() for i in self.bot.cogs]
-        if cog in coglist:
-            await ctx.message.add_reaction(self.tick)
-            self.bot.unload_extension(f"cogs.{cog}")
-            self.bot.load_extension(f"cogs.{cog}")
-            await ctx.send(embed=Embed(
-                title=f"Reloaded Cog: {cog}"
-            ))
-
-    @cogs.group()
-    async def load(self, ctx, cogout):
-        """Loads a Cog"""
         for cog in l("cogs"):
             if ".py" in cog:
-                cogin = cog.replace(".py", "")
-                if cogin == cogout:
-                    await ctx.message.add_reaction(self.tick)
-                    self.bot.load_extension(f"cogs.{cogin}")
-                    await ctx.send(embed=Embed(
-                        title=f"Loaded Cog: {cogin}"
-                    ))
+                cog = cog.replace(".py", "")
+                cogdir += f'└──{cog}\n'
 
+        await ctx.send(embed=Embed(
+                title="Cogs ⚙",
+                description=f"```{cogdir}```", color=0xEA0E0E
+            ))
     @commands.group()
     @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -138,7 +77,7 @@ class Config(commands.Cog):
 
             tchannels = ctx.guild.text_channels
             vchannels = ctx.guild.voice_channels
-            tchannels = [i for i in tchannels if i.name not in ["welcome", "rules", "logs","testing"]]
+            tchannels = [i for i in tchannels if i.name not in ["welcome", "rules", "logs", "testing"]]
 
             for channel in tchannels:
                 await channel.set_permissions(base_role,
@@ -300,4 +239,4 @@ class Config(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Config(bot))
+    bot.add_cog(Admin(bot))

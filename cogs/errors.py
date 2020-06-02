@@ -1,33 +1,25 @@
 from discord.ext import commands
 from discord import Embed
-from discord import errors
+
 
 class Errors(commands.Cog):
     """Error handling.
     """
+
     def __init__(self, bot):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.CommandNotFound):
-            await ctx.send(embed=Embed(
-                title=error.args[0]), delete_after=3)
-            await ctx.message.delete(delay=2)
-
+        msg = Embed(color=0x0EEA7C)
         if isinstance(error, commands.errors.CommandOnCooldown):
-            await ctx.send(embed=
-                           Embed(title=f"Wait {'%.2f' % error.retry_after}s",
-                                 description=f"Cooldown is `{error.cooldown.per}s`"))
+            msg.title =  f"Cooldown ({error.cooldown.per}s)"
+            msg.description = f"Try again in {'%.2f' % error.retry_after}s"
+        if isinstance(error, commands.errors.CommandError):
+            msg.title = error.args[0]
 
-        if isinstance(error, commands.errors.MissingRequiredArgument):
-            await ctx.send(embed=Embed(
-                title=f"Missing argument",
-                description=f"```{error}```"
-            ))
-        if isinstance(error, errors.HTTPException):
-            pass
+        await ctx.send(embed=msg)
 
-        
+
 def setup(bot):
     bot.add_cog(Errors(bot))

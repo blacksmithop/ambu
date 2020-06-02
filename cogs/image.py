@@ -104,5 +104,6 @@ class Image(commands.Cog):
                 title="🏕", timestamp=dt.now(), url=f"https://reddit.com/{url['permalink']}"
             ).set_image(url=url['url']))
 
+
 def setup(bot):
     bot.add_cog(Image(bot))

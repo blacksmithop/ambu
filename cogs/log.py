@@ -141,7 +141,7 @@ class Log(commands.Cog):
             ))
 
     @color.group(invoke_without_command=True)
-    async def give(self, ctx, member: Member, role: Role):
+    async def add(self, ctx, member: Member, role: Role):
         await member.add_roles(role)
         await ctx.message.add_reaction(self.tick)
         await ctx.send(embed=Embed(
@@ -160,7 +160,6 @@ class Log(commands.Cog):
     @commands.has_role("Dev")
     async def invite(self, ctx, member: commands.Greedy[Member]):
         guild = ctx.guild
-
         channel = get(guild.channels, name="testing")
         await channel.set_permissions(guild.default_role, read_messages=False)
         for m in member:
