@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord import Embed
 from discord.utils import get
-from ambu.cogs.AddOns.db import BotConfig
+from ambu.db import BotConfig
 
 
 class Help(commands.Cog):

@@ -5,7 +5,7 @@ from os import getenv as e, listdir as l
 from logging import basicConfig, error, ERROR
 from discord.errors import LoginFailure
 from discord.ext.commands.errors import ExtensionFailed
-from ambu.cogs.AddOns.db import BotConfig
+from ambu.db import BotConfig
 
 db = BotConfig()
 basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=ERROR)

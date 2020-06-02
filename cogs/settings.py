@@ -1,7 +1,6 @@
 from discord.ext import commands
-from ambu.cogs.AddOns import db
+from ambu import db
 from discord import Embed, Role, TextChannel
-from discord.utils import get
 from typing import Union
 
 

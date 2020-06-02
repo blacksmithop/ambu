@@ -3,7 +3,7 @@ from discord import Embed, Member
 from discord.utils import get
 from os import listdir as l
 from asyncio import sleep
-from ambu.cogs.AddOns.db import BotConfig
+from ambu.db import BotConfig
 
 
 class Admin(commands.Cog):
