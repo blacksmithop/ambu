@@ -1,8 +1,11 @@
 from discord.ext import commands
-from ambu import db
 from discord import Embed, Role, TextChannel
 from typing import Union
+import sys
+import os.path
 
+sys.path.append(os.path.join(os.path.dirname(__file__), 'ambu/'))
+from db import BotConfig
 
 class Settings(commands.Cog):
     """Bot Settings.
@@ -10,7 +13,7 @@ class Settings(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.db = db.BotConfig()
+        self.db = BotConfig()
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):

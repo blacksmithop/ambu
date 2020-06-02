@@ -3,7 +3,11 @@ from discord import Embed, Member
 from discord.utils import get
 from os import listdir as l
 from asyncio import sleep
-from ambu.db import BotConfig
+import sys
+import os.path
+
+sys.path.append(os.path.join(os.path.dirname(__file__), 'ambu/'))
+from db import BotConfig
 
 
 class Admin(commands.Cog):

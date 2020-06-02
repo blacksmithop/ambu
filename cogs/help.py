@@ -1,7 +1,11 @@
 from discord.ext import commands
 from discord import Embed
 from discord.utils import get
-from ambu.db import BotConfig
+import sys
+import os.path
+
+sys.path.append(os.path.join(os.path.dirname(__file__), 'ambu/'))
+from db import BotConfig
 
 
 class Help(commands.Cog):
