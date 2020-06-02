@@ -81,7 +81,7 @@ class Help(commands.Cog):
             "disabled": ["Disable a command", None, "administrator", "command [cmd]"],
             "member": ["Sets Member role", None, "administrator", "role [@Role]"],
             "muted": ["Sets Muted role", None, "administrator", "role [@Role]"],
-            "invite": ["Allow / Disallor invite links", None, "administrator", "True / False [bool]"]
+            "invite": ["Allow / Disallow invite links", None, "administrator", "True / False [bool]"]
         }
         hembed = Embed()
         hembed.set_author(name=self.bot.user.display_name,
