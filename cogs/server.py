@@ -7,7 +7,7 @@ class Server(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.port = 9090
+        self.port = 8080
 
     async def webserver(self):
         async def handler(request):

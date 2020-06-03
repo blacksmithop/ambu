@@ -7,7 +7,7 @@ import sys
 import os.path
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'ambu/'))
-from db import BotConfig
+from ambu.db import BotConfig
 
 
 class Admin(commands.Cog):
@@ -18,7 +18,7 @@ class Admin(commands.Cog):
         self.bot = bot
         self.db = BotConfig()
         self.guild = self.bot.get_guild(int(self.db.value(key="emotes")))
-        self.tick = get(self.guild.emojis, name="tick")
+        self.tick = get(self.guild.emojis, name="agree")
 
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -64,9 +64,10 @@ class Admin(commands.Cog):
                 cogdir += f'└──{cog}\n'
 
         await ctx.send(embed=Embed(
-                title="Cogs ⚙",
-                description=f"```{cogdir}```", color=0xEA0E0E
-            ))
+            title="Cogs ⚙",
+            description=f"```{cogdir}```", color=0xEA0E0E
+        ))
+
     @commands.group()
     @commands.has_permissions(administrator=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -186,16 +187,16 @@ class Admin(commands.Cog):
         await member.add_roles(muted_role)
 
         await ctx.send(embed=Embed(
-            title=f"Muted {member.display_name}"
+            title=f"Muted {member.display_name} for {num}{unit}", color=0x2EDF87
         ))
 
         if num > 0:
             await sleep(num)
-            await member.remove_roles(muted_role)
             for role in member.roles:
                 if role.name == "Muted":
+                    await member.remove_roles(muted_role)
                     await ctx.send(embed=Embed(
-                        title=f"Unmuted {member.display_name}"
+                        title=f"Unmuted {member.display_name}", color=0x2EDF87
                     ))
 
     @commands.command()

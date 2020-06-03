@@ -1,13 +1,14 @@
 import redis
 from json import loads, dumps
+from os import getenv as e
 
 
 class BotConfig:
 
     def __init__(self):
-        self.ses = redis.Redis(host="redis-17489.c11.us-east-1-2.ec2.cloud.redislabs.com",
+        self.ses = redis.Redis(host=e("host"),
                                port=17489,
-                               password='5lM65RU4jr53isgWpvanzMCp5Ym2Tat0')
+                               password=e("pwd"))
 
         self.guild_stats = {"prefix": None, "welcome": None, "verify": None, "logs": None,
                             "disabled": None, "muted": None, "testing": None, "member": None,

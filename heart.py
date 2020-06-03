@@ -6,6 +6,7 @@ from logging import basicConfig, error, ERROR
 from discord.errors import LoginFailure
 from discord.ext.commands.errors import ExtensionFailed
 from ambu.db import BotConfig
+from discord import Game, Status
 
 db = BotConfig()
 basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=ERROR)
@@ -13,7 +14,8 @@ basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', lev
 
 def prefix(bot, message):
     p = db.get(id=message.guild.id, key="prefix")
-    return [p, f'<@!{bot.user.id}> ', f'<@{bot.user.id}> '] or '?'
+
+    return p or ['?', f'<@!{bot.user.id}> ', f'<@{bot.user.id}> ']
 
 
 bot = commands.Bot(command_prefix=prefix, description='Multi-purpose Discord Bot', case_insensitive=True)
@@ -35,7 +37,7 @@ async def on_ready():
                 bot.load_extension(f"cogs.{cog}")
             except ExtensionFailed:
                 error(f"Failed to load {cog}")
-
+    await bot.change_presence(status=Status.online, activity=Game("?help"))
 
 @bot.command()
 async def unload(ctx, cog):

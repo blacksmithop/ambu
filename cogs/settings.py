@@ -34,7 +34,7 @@ class Settings(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(administrator=True)
-    async def set(self, ctx, key: str, value: Union[TextChannel, Role, str, bool] = None):
+    async def set(self, ctx, key: str, value: Union[TextChannel, Role, str] = None):
 
         if not key in self.db.guild_stats.keys():
             return
