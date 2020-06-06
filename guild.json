@@ -1,0 +1,40 @@
+{
+  "welcome" : {
+    "channel": null,
+    "message": null,
+    "information": null
+  },
+  "leave": {
+    "channel": null,
+    "message": null
+  },
+  "roles": {
+    "self": [],
+    "member": null,
+    "admin": null,
+    "muted": null,
+    "dev": null
+  },
+  "logs": {
+    "channel": null,
+    "delete": null,
+    "edit": null,
+    "roleadd": null,
+    "roleremove": null,
+    "invitecreate": null
+  },
+  "verification": {
+    "verify": null,
+    "message": null,
+    "joinrole": null
+  },
+  "prefix": "?",
+  "invitefilter": null,
+  "bans": [],
+  "maxwarns": [],
+
+  "testing": {
+    "channel": null,
+    "members": []
+  }
+}

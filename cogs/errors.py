@@ -12,9 +12,6 @@ class Errors(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         msg = Embed(color=0x0EEA7C)
-        if isinstance(error, commands.errors.CommandOnCooldown):
-            msg.title =  f"Cooldown ({error.cooldown.per}s)"
-            msg.description = f"Try again in {'%.2f' % error.retry_after}s"
         if isinstance(error, commands.errors.CommandError):
             msg.title = error.args[0]
 

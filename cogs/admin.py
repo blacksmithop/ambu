@@ -1,13 +1,10 @@
 from discord.ext import commands
 from discord import Embed, Member
 from discord.utils import get
-from os import listdir as l
+from ambu import db
+from pickle import loads as l
+from re import sub
 from asyncio import sleep
-import sys
-import os.path
-
-sys.path.append(os.path.join(os.path.dirname(__file__), 'ambu/'))
-from ambu.db import BotConfig
 
 
 class Admin(commands.Cog):
@@ -16,31 +13,44 @@ class Admin(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.db = BotConfig()
-        self.guild = self.bot.get_guild(int(self.db.value(key="emotes")))
+        self.db = db.BotConfig()
+        self.guild = self.bot.get_guild(self.db.fetch(name="emote"))
         self.tick = get(self.guild.emojis, name="agree")
-
-    @commands.command()
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def prefix(self, ctx):
-        """Shows the bot Prefix
-        """
-        if ctx.invoked_subcommand is None:
-            p = self.db.get(id=ctx.guild.id, key="prefix") or self.bot.command_prefix
-            await ctx.send(embed=Embed(title=f"Prefix for {ctx.guild.name}",
-                                       description=f"```{p}```",
-                                       color=0x40D7D7))
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        channel = get(member.guild.channels, name="welcome")
-        await channel.send(embed=Embed(
-            title=f"Welcome to the server!", color=0x8722EB
+        cnl = self.db.getparam(id=member.guild.id, key=["welcome"])
+        cnl = {k: l(cnl[k]) for k in cnl.keys()}
+        id = int(sub("[<#>]", '', cnl['channel']))
+        wel = self.bot.get_channel(id=id)
+        if not wel:
+            return
+        role = self.db.getparam(id=member.guild.id, key=["verification", "joinrole"])
+        id = int(sub("[<@&>]", '', role))
+        role = get(member.guild.roles, id=id)
+        if not role:
+            return
+
+        await wel.send(embed=Embed(
+            title=cnl["message"].format(member=member.display_name), color=0x8722EB,
+            description=cnl["information"]
         ).set_author(icon_url=member.avatar_url, name=member.display_name))
-        role = get(member.guild.roles, name="Joined")
+
         await member.add_roles(role)
 
-    @commands.group()
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        cnl = self.db.getparam(id=member.guild.id, key=["leave"])
+        if not cnl['channel']:
+            return
+        cnl = {k: l(cnl[k]) for k in cnl.keys()}
+        id = int(sub("[<#>]", '', cnl['channel']))
+        wel = self.bot.get_channel(id=id)
+        await wel.send(embed=Embed(
+            title=cnl["message"].format(member=member.display_name), color=0x8722EB
+        ).set_author(icon_url=member.avatar_url, name=member.display_name))
+
+    @commands.command()
     async def cogs(self, ctx):
         """Shows loaded Cogs"""
         if ctx.invoked_subcommand is None:
@@ -54,117 +64,36 @@ class Admin(commands.Cog):
                 description=f"```{cogdir}```", color=0xEA0E0E
             ))
 
-    @cogs.group()
-    async def all(self, ctx):
-        """Shows available Cogs"""
-        cogdir = ""
-        for cog in l("cogs"):
-            if ".py" in cog:
-                cog = cog.replace(".py", "")
-                cogdir += f'└──{cog}\n'
-
-        await ctx.send(embed=Embed(
-            title="Cogs ⚙",
-            description=f"```{cogdir}```", color=0xEA0E0E
-        ))
-
-    @commands.group()
-    @commands.has_permissions(administrator=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    async def setchannel(self, ctx):
-        """Configures Channels"""
-        if ctx.invoked_subcommand is None:
-
-            base_role = get(ctx.guild.roles, name="Member")
-            yet_to_verify = get(ctx.guild.roles, name="Joined")
-            muted = get(ctx.guild.roles, name="Muted")
-            dev_role = get(ctx.guild.roles, name="Dev")
-
-            tchannels = ctx.guild.text_channels
-            vchannels = ctx.guild.voice_channels
-            tchannels = [i for i in tchannels if i.name not in ["welcome", "rules", "logs", "testing"]]
-
-            for channel in tchannels:
-                await channel.set_permissions(base_role,
-                                              add_reactions=True, send_messages=True, read_messages=True,
-                                              read_message_history=True,
-                                              change_nickname=True, manage_emojis=True, embed_links=True,
-                                              attach_files=True)
-
-                await channel.set_permissions(ctx.guild.default_role, send_messages=False, read_messages=False,
-                                              read_message_history=False)
-
-                await channel.set_permissions(muted, send_messages=False, read_messages=False,
-                                              read_message_history=False)
-
-            for channel in vchannels:
-                await channel.set_permissions(base_role, connect=True, speak=True, stream=True)
-
-            welcome = get(ctx.guild.text_channels, name="welcome")
-            await welcome.set_permissions(base_role, read_messages=True, send_messages=False, read_message_history=True)
-            await welcome.set_permissions(ctx.guild.default_role, send_messages=False, read_messages=True,
-                                          read_message_history=False)
-
-            rules = get(ctx.guild.text_channels, name="rules")
-
-            await rules.set_permissions(yet_to_verify, send_messages=True, add_reactions=False, read_messages=True,
-                                        read_message_history=True)
-            await rules.set_permissions(ctx.guild.default_role, send_messages=False, read_messages=False,
-                                        read_message_history=False)
-
-            logs = get(ctx.guild.text_channels, name="logs")
-            await logs.set_permissions(ctx.guild.default_role, send_messages=False, read_messages=False,
-                                       read_message_history=False)
-            await logs.set_permissions(muted, send_messages=False, read_messages=False,
-                                       read_message_history=False)
-            await logs.set_permissions(base_role, send_messages=False, read_messages=True,
-                                       read_message_history=True, add_reactions=False)
-
-            testing = get(ctx.guild.channels, name="testing")
-            await testing.set_permissions(ctx.guild.default_role, read_messages=False)
-            await testing.set_permissions(dev_role, read_messages=True, embed_links=True)
-            await ctx.message.add_reaction(self.tick)
-            await rules.send(content="Send ?accept to access rest of the server")
-            for member in ctx.guild.members:
-                if not member.bot:
-                    await member.add_roles(base_role)
-
-            await ctx.send(embed=Embed(
-                title="Success",
-                description=""" Set Member as default role\n Joined as unverified role
-                \n Muted as muted role\n Dev as testing role"""
-            ))
-
-    @setchannel.group()
-    async def role(self, ctx):
-        """Configures Roles"""
-        if get(ctx.guild.roles, name="Member") is None:
-            await ctx.guild.create_role(name="Member")
-        if get(ctx.guild.roles, name="Joined") is None:
-            await ctx.guild.create_role(name="Joined")
-        if get(ctx.guild.roles, name="Muted") is None:
-            await ctx.guild.create_role(name="Muted")
-        if get(ctx.guild.roles, name="Dev") is None:
-            await ctx.guild.create_role(name="Dev")
-        await ctx.message.add_reaction(self.tick)
-        await ctx.send(embed=Embed(
-            description="Created roles Member, Joined, Muted, Dev"
-        ))
-
     @commands.command()
     @commands.has_role("Joined")
     async def accept(self, ctx):
-        """Accepts and gets Member tag"""
-        if ctx.channel.name == "rules":
+        cnl = self.db.getparam(id=ctx.author.guild.id, key=["verification"])
+        if not cnl["verify"]:
+            return
+        cnl = {k: l(cnl[k]) for k in cnl.keys()}
+        id = int(sub("[<#>]", '', cnl['verify']))
+        if not self.bot.get_channel(id=id) == ctx.channel:
+            return
+        remove = cnl["joinrole"]
+        add = self.db.getparam(id=ctx.author.guild.id, key=["roles", "member"])
+        if add and remove:
+            add = int(sub('[<@&>]', '', add))
+            remove = int(sub('[<@&>]', '', remove))
+            add = get(ctx.guild.roles, id=add)
+            remove = get(ctx.guild.roles, id=remove)
             await ctx.message.add_reaction(self.tick)
-            add = get(ctx.guild.roles, name="Member")
             await ctx.author.add_roles(add)
-            remove = get(ctx.guild.roles, name="Joined")
             await ctx.author.remove_roles(remove)
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.channel.name == "rules" and message.author != self.bot.user:
+        cnl = self.db.getparam(id=message.guild.id, key=["verification", "verify"])
+        if not cnl:
+            return
+        id = int(sub("[<#>]", '', cnl))
+        if not self.bot.get_channel(id=id) == message.channel:
+            return
+        if not message.author == self.bot.user:
             await message.delete(delay=2)
 
     @commands.command()
@@ -173,9 +102,12 @@ class Admin(commands.Cog):
                    num: int, unit: str):
         """Mutes a member"""
         if self.bot.user == member or member == ctx.author:
-            await ctx.send("Self-mute is disabled")
             return
-        muted_role = get(ctx.guild.roles, name="Muted")
+        m = self.db.getparam(id=ctx.guild.id, key=["roles", "muted"])
+        if not m:
+            return
+        id = int(sub('[<@&>]', '', m))
+        muted_role = get(ctx.guild.roles, id=id)
 
         if unit in ['s', 'sec', 'second', 'seconds']:
             num = num
@@ -196,7 +128,7 @@ class Admin(commands.Cog):
                 if role.name == "Muted":
                     await member.remove_roles(muted_role)
                     await ctx.send(embed=Embed(
-                        title=f"Unmuted {member.display_name}", color=0x2EDF87
+                        title=f"{member.display_name} is now un-muted", color=0x2EDF87
                     ))
 
     @commands.command()
@@ -204,43 +136,29 @@ class Admin(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def unmute(self, ctx, member: Member):
         """Unmutes a member"""
-        muted = None
-        for role in member.roles:
-            if role.name == "Muted":
-                muted = role
-        if muted is not None:
-            await ctx.message.add_reaction(self.tick)
-            await member.remove_roles(muted)
-            await ctx.send(embed=Embed(
-                title=f"Unmuted {member.display_name}"
-            ))
+        m = self.db.getparam(id=ctx.guild.id, key=["roles", "muted"])
+        if not m:
+            return
+        id = int(sub('[<@&>]', '', m))
+        muted_role = get(ctx.guild.roles, id=id)
+        if muted_role not in member.roles:
+            return
+        await ctx.message.add_reaction(self.tick)
+        await member.remove_roles(muted_role)
+        await ctx.send(embed=Embed(title=f"{member.display_name} was un-muted"))
 
     @commands.command()
-    @commands.is_owner()
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def disable(self, ctx, cmd):
-        """Disables a Command"""
-        for x in self.bot.get_command(cmd).commands:
-            x.enabled = False
-        await ctx.message.add_reaction(self.tick)
-        self.bot.get_command(cmd).update()
-
-    @commands.group(invoke_without_command=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.has_permissions(manage_messages=True)
-    async def purge(self, ctx, limit: int = 1):
+    async def purge(self, ctx, limit: int = 5, member: Member = None):
         """Deleted messages"""
-        if ctx.invoked_subcommand is None:
-            await ctx.channel.purge(limit=limit + 1)
+        if member:
+            def is_me(m):
+                return m.author == member
 
-    @purge.group(invoke_without_command=True)
-    async def by(self, ctx, member: Member, limit: int = 10):
-        """Deleted messages by user"""
-
-        def is_me(m):
-            return m.author == member
-
-        await ctx.channel.purge(limit=limit, check=is_me)
+            await ctx.channel.purge(limit=limit, check=is_me)
+            return
+        await ctx.channel.purge(limit=limit + 1)
 
 
 def setup(bot):

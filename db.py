@@ -1,57 +1,105 @@
 import redis
-from json import loads, dumps
 from os import getenv as e
+from pickle import loads as l, dumps as d
 
 
 class BotConfig:
 
     def __init__(self):
-        self.ses = redis.Redis(host=e("host"),
-                               port=17489,
-                               password=e("pwd"))
+        self.r = redis.Redis(host=e("host"),
+                             port=17489,
+                             password=e("pwd"))
+        none = d(None)
+        self.guild = {
+            "welcome": {
+                "channel": none,
+                "message": none,
+                "information": none
+            },
+            "leave": {
+                "channel": none,
+                "message": none
+            },
+            "roles": {
+                "self": none,
+                "member": none,
+                "admin": none,
+                "muted": none,
+                "testing": none
+            },
+            "logs": {
+                "channel": none,
+                "delete": none,
+                "edit": none,
+                "roleadd": none,
+                "roleremove": none,
+                "invitecreate": none
+            },
+            "verification": {
+                "verify": none,
+                "message": none,
+                "joinrole": none
+            },
+            "prefix": none,
+            "invitefilter": none,
+            "bans": none,
+            "maxwarns": none,
 
-        self.guild_stats = {"prefix": None, "welcome": None, "verify": None, "logs": None,
-                            "disabled": None, "muted": None, "testing": None, "member": None,
-                            "invite": None, "leave": None}
+            "testing": {
+                "channel": none,
+                "members": none
+            },
+            "cussfilter": none,
+            "spamfilter": none
+        }
 
-    def ping(self):
-        return self.ses.ping()
+    def addguild(self, id: int):
+        return self.r.set(id, d(self.guild))
 
-    def flush(self, id: int):
-        return self.ses.flushdb() if id == 1234 else False
+    def removeguild(self, id: int):
+        return self.r.delete(id, self.guild)
 
-    def set(self, key: str, value: str, id: int, append: bool = False):
-        guild = self.ses.get(id)
-        if not guild:
-            return False
-        guild = loads(guild)
-        if append:
-            guild[key].append(value)
+    def getguild(self, id: int):
+        if not self.r.exists(id):
+            return
+        guild = self.r.get(id)
+        guild = l(guild)
+        return guild
+
+    def getparam(self, key: [] or str, id: int):
+        if not self.r.exists(id):
+            return
+        guild = self.r.get(id)
+        if len(key) == 2:
+            guild = l(guild)
+            guild = guild[key[0]][key[1]]
+            guild = l(guild)
+            return guild if guild!=d(None) else None
+
         else:
-            guild[key] = value
-        guild = dumps(guild)
-        return self.ses.set(id, guild)
+            guild = l(guild)[key[0]]
+            if type(guild) is dict:
+                return guild
+            if l(guild) == d(None):
+                guild = None
+            else:
+                guild = l(guild)
+        return guild
 
-    def get(self, id: int, key: str = None):
-        guild = self.ses.get(id)
-        if not guild:
-            return False
-        guild = loads(guild)
-        if not key:
-            return guild
-        return guild[key]
+    def setparam(self, key: [], value, id: int):
+        if not self.r.exists(id):
+            return
+        guild = self.r.get(id)
+        guild = l(guild)
+        if len(key) > 1:
+            guild[key[0]][key[1]] = value
+        else:
+            guild[key[0]] = value
+        return self.r.set(id, d(guild))
 
-    def add(self, id: int):
-        print(self.guild_stats)
-        return self.ses.set(id, dumps(self.guild_stats))
-
-    def remove(self, id: int):
-        return self.ses.delete(id)
-
-    def value(self, key: str, value=None):
-        if value is None:
-            return self.ses.get(key).decode("utf-8")
-        return self.ses.set(key, value)
+    def fetch(self, name: str):
+        em = self.r.get(name)
+        return l(em)
 
 
-db = BotConfig()
+

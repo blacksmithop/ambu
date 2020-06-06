@@ -11,8 +11,7 @@ class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.db = BotConfig()
-        self.guild_id = int(self.db.value(key="emotes"))
-        self.guild = self.bot.get_guild(self.guild_id)
+        self.guild = self.bot.get_guild(self.db.fetch(name="emote"))
         self.tick = get(self.guild.emojis, name="loading")
         self.client = get(self.guild.emojis, name="client")
         self.exec = get(self.guild.emojis, name="dev")
@@ -23,7 +22,7 @@ class Help(commands.Cog):
 
     @commands.command()
     async def help(self, ctx, cog: str = None, sub: str = None):
-        prefix = self.db.get(id=self.guild_id, key="prefix")
+        prefix = self.db.getparam(id=ctx.guild.id, key=["prefix"])
 
         cogs = {"🛠 Admin": "Commands for admins",
                 "📷 Image": "Image commands",
@@ -33,24 +32,21 @@ class Help(commands.Cog):
                 f"{self.server} Server": "Web-server"
                 }
 
-        cogcmds = {"admin": ["prefix", "purge", "mute", "unmute", "setchannel", "cogs", "disable"],
+        cogcmds = {"admin": ["purge", "mute", "unmute", "cogs"],
                    "log": ["color", "revoke", "invite", "stats", "init"],
                    "image": ["cat", "fox", "dog", "nature", "porn"],
-                   "repl": ["exc"],
+                   "repl": ["jsk"],
                    "help": ["help"],
                    "settings": ["set", "info"]
                    }
         cmds = {
-            "prefix": ["Shows the bot Prefix", 5, None, None, None],
-            "purge": ["Deletes messages", 5, "manage_messages", "number [int]/ by mem [member] number [int]", None],
-            "mute": ["Mutes a member", None, "manage_roles", "user [member] time [int] unit [s,m,h]", None],
-            "unmute": ["Unmutes a member", None, "manage_roles", "user [member]", None],
+            "purge": ["Deletes messages", 5, "manage_messages", "limit member(optional)", None],
+            "mute": ["Mutes a member", None, "manage_roles", "user time unit(s,m,h)", None],
+            "unmute": ["Unmutes a member", None, "manage_roles", "user", None],
             "cogs": ["Shows available Cogs", None, "is_owner", None, ["all"]],
-            "disable": ["Disables a Command", None, "is_owner", "command [cmd]", None],
-            "setchannel": ["Configures channels", 10, "administrator", None, ["role"]],
-            "color": ["Creates a color role", None, "manage_roles", "name[str] code[hex]", ["give", "remove"]],
-            "revoke": ["Revokes all invite links", None, "manage_guild, manage_messages", ["/ by mem [member]"], None],
-            "invite": ["Invites members to testing channel", None, "has_role Dev", "mem [member],mem2 [member],...", None],
+            "color": ["Creates a color role", None, "manage_roles", "name hex-code", ["give", "remove"]],
+            "revoke": ["Revokes all invite links", None, "manage_guild, manage_messages", ["/ by user"], None],
+            "invite": ["Invites members to testing channel", None, "has_role Dev", "user1, user2..", None],
             "stats": ["Statistics about the server", 10, None, None, None],
             "init": ["Creates logging channels", None, "administrator", None, None],
             "cat": ["Random cat image", None, None, None, None],
@@ -58,30 +54,27 @@ class Help(commands.Cog):
             "dog": ["Random dog image", None, None, None, None],
             "nature": ["Random nature image", None, None, None, None],
             "porn": ["Random nature image", None, "is_nsfw", None, None],
-            "exc": ["Run Python code", None, "is_owner", "```py\nfrom math import pi```", None],
+            "jsk": ["Run Python code", None, "is_owner", "```py\nfrom math import pi```", None],
             "help": ["Shows the help command", None, None, None, None],
-            "info": ["Shows bot configuration", None, None, None, None],
-            "set": ["Set's bot configuration", None, "administrator", "[setting] [state]",
-                    ["prefix", "welcome", "leave", "verify",
-                     "testing", "logs", "disabled",
-                     "member", "muted", "invite"]]
+            "info": ["Shows bot settings", None, None, None, None],
+            "set": ["Set's bot configuration", None, "administrator", "[setting] [value]",
+                    ["prefix", "welcome", "leave", "verification",
+                     "roles", "logs", "maxwarns", "bans",
+                     "testing", "spamfilter", "invitefilter", "cussfilter"]]
         }
 
         subcmds = {
-            "set": ["Sets the bot prefix", 5, "administrator", "new-prefix [str]"],
-            "role": ["Configures channel roles", 10, "administrator", None],
             "add": ["Adds color role to user", None, "manage_roles", "mem [member] role [str]"],
             "remove": ["Removes color role from user", None, "manage_roles", "mem [member] role [str]"],
-            "prefix": ["Sets the bot prefix", None, "administrator", "new-prefix [str]"],
-            "welcome": ["Sets the welcome channel", None, "administrator", "channel"],
-            "leave": ["Sets the farewell channel", None, "administrator", "channel [#channel]"],
-            "verify": ["Sets the verification channel", None, "administrator", "channel [#channel]"],
-            "testing": ["Sets the testing channel", None, "administrator", "channel [#channel]"],
-            "logs": ["Sets the logging channel", None, "administrator", "channel"],
-            "disabled": ["Disable a command", None, "administrator", "command [cmd]"],
-            "member": ["Sets Member role", None, "administrator", "role [@Role]"],
-            "muted": ["Sets Muted role", None, "administrator", "role [@Role]"],
-            "invite": ["Allow / Disallow invite links", None, "administrator", "True / False [bool]"]
+            "welcome": ["Welcomer settings", None, "administrator", "channel: #welcome |\nmessage: Welcome {member} |\ninformation Read the rules at #channel"],
+            "leave": ["Farewell settings", None, "administrator", "channel: #leave |\nmessage: {member} has left"],
+            "verification": ["Verification settings", None, "administrator", "channel: #welcome |\nmessage:Do __ to accept |"],
+            "testing": ["Sets the testing channel", None, "administrator", "channel #channel"],
+            "logs": ["Logging settings", None, "administrator", "channel"],
+            "invitefilter": ["Allow / Disallow invite links", None, "administrator", "True | False"],
+            "cussfilter": ["Allow / Disallow invite cussing", None, "administrator", "True | False"],
+            "spamfilter": ["Allow / Disallow invite spam", None, "administrator", "True | False "],
+            "maxwarns": ["Set maximum number of user warns", None, "administrator", None]
         }
         hembed = Embed()
         hembed.set_author(name=self.bot.user.display_name,

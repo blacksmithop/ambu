@@ -14,7 +14,7 @@ class Log(commands.Cog):
         self.bot = bot
 
         self.db = BotConfig()
-        self.guild = self.bot.get_guild(int(self.db.value(key="emotes")))
+        self.guild = self.bot.get_guild(self.db.fetch(name="emote"))
         self.tick = get(self.guild.emojis, name="agree")
         self.warn = get(self.guild.emojis, name="muted")
         self.load = get(self.guild.emojis, name="loading")
@@ -24,11 +24,12 @@ class Log(commands.Cog):
         if message.author == self.bot.user:
             return
 
-        log = int(sub("[<#>]", '', self.db.get(id=message.guild.id, key="logs")))
+        log = int(sub("[<#>]", '', self.db.getparam(id=message.guild.id, key=["logs", "channel"])))
         channel = get(message.author.guild.channels, id=log)
-        if channel is None:
+        if not channel:
             return
-
+        if not self.db.getparam(id=message.guild.id, key=["logs", "delete"]):
+            return
         deleted = Embed(
             description=f"Message deleted in {message.channel.mention}", color=0x4040EC
         ).set_author(name=message.author, url=Embed.Empty, icon_url=message.author.avatar_url)
@@ -41,12 +42,14 @@ class Log(commands.Cog):
     async def on_message_edit(self, before, after):
         if before.author == self.bot.user:
             return
-
-        log = int(sub("[<#>]", '', self.db.get(id=before.guild.id, key="logs")))
+        log = int(sub("[<#>]", '', self.db.getparam(id=before.guild.id, key=["logs", "channel"])))
         channel = get(before.author.guild.channels, id=log)
-        if channel is None:
+        if not channel:
             return
-
+        if not self.db.getparam(id=before.guild.id, key=["logs", "edit"]):
+            return
+        log = int(sub("[<#>]", '', self.db.getparam(id=before.guild.id, key=["logs", "channel"])))
+        channel = get(before.author.guild.channels, id=log)
         edited = Embed(
             description=f"Message edited in {before.channel.mention} [Jump]({after.jump_url})", color=0x9640EC
         ).set_author(name=before.author, url=Embed.Empty, icon_url=before.author.avatar_url)
@@ -63,17 +66,22 @@ class Log(commands.Cog):
             for perm, value in message.author.guild_permissions:
                 if value and perm == 'manage_messages':
                     return
-                allow = self.db.get(id=message.guild.id, key="invite")
-                if allow == "True":
+                log = int(sub("[<#>]", '', self.db.getparam(id=message.guild.id, key=["logs", "channel"])))
+                channel = get(message.author.guild.channels, id=log)
+                if not channel:
+                    return
+                if not self.db.getparam(id=message.guild.id, key=["invitefilter"]):
                     return
             await message.delete()
             await message.channel.send(f"Invite links not allowed in chat! {self.warn}")
 
     @commands.Cog.listener()
     async def on_invite_create(self, invite):
-        log = int(sub("[<#>]", '', self.db.get(id=invite.guild.id, key="logs")))
-        channel = get(invite.guild.channels, id=log)
-        if channel is None:
+        log = int(sub("[<#>]", '', self.db.getparam(id=invite.guild.id, key=["logs", "channel"])))
+        channel = get(invite.inviter.guild.channels, id=log)
+        if not channel:
+            return
+        if not self.db.get(id=invite.guild.id, key=["logs", "invitecreate"]):
             return
         invited = Embed().set_author(name=invite.inviter, url=Embed.Empty, icon_url=invite.inviter.avatar_url)
         invited.timestamp = invite.created_at
@@ -94,7 +102,12 @@ class Log(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
-        channel = get(before.guild.channels, name="logs")
+        log = int(sub("[<#>]", '', self.db.getparam(id=before.guild.id, key=["logs", "channel"])))
+        channel = get(before.guild.channels, id=log)
+        if not channel:
+            return
+        if not self.db.getparam(id=before.guild.id, key=["logs", "roles"]):
+            return
         old = before.roles
         new = after.roles
         rolechange = Embed().set_author(name=before, url=Embed.Empty, icon_url=before.avatar_url)
@@ -111,22 +124,20 @@ class Log(commands.Cog):
         rolechange.timestamp = dt.now()
         await channel.send(embed=rolechange)
 
-    @commands.group()
+    @commands.command()
     @commands.has_permissions(manage_guild=True, manage_messages=True)
-    async def revoke(self, ctx):
-        if ctx.invoked_subcommand is None:
+    async def revoke(self, ctx, member: Member = None):
+        if member:
             for invite in await ctx.guild.invites():
-                await invite.delete()
-            await ctx.send(embed=Embed(title=f'Revoked all invites for {ctx.guild.name}'
+                if invite.inviter == member:
+                    await invite.delete()
+            await ctx.send(embed=Embed(title=f'Revoked invites for {ctx.guild.name} by {member.display_name}'
                                        , color=0xDFDF2E))
-
-    @revoke.group()
-    async def by(self, ctx, member: Member):
+            return
         for invite in await ctx.guild.invites():
-            if invite.inviter == member:
-                await invite.delete()
-        await ctx.send(embed=Embed(title=f'Revoked invites for {ctx.guild.name} by {member.display_name}'
-                                   , color=0xDFDF2E))
+            await invite.delete()
+        await ctx.send(embed=Embed(title=f'Revoked all invites for {ctx.guild.name}'
+                                       , color=0xDFDF2E))
 
     @commands.group(invoke_without_command=True)
     @commands.has_permissions(manage_roles=True)
@@ -134,7 +145,7 @@ class Log(commands.Cog):
         if ctx.invoked_subcommand is None:
             if code is None:
                 await ctx.send(embed=Embed(
-                    title="Color picker tool", color=self.l_clr,
+                    title="Color picker tool", color=0xfc4e03,
                     description="Pick the hex code for your color here",
                     url='https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Colors/Color_picker_tool'
                 ).set_thumbnail(url='https://developer.mozilla.org/static/img/opengraph-logo.72382e605ce3.png'))
@@ -170,7 +181,7 @@ class Log(commands.Cog):
         await ctx.send(embed=Embed(
             title=f"Removed Role {role} from {member.display_name}", color=role.color, timestamp=dt.now()
         ))
-
+    '''
     @commands.command()
     @commands.has_role("Dev")
     async def invite(self, ctx, member: commands.Greedy[Member]):
@@ -180,17 +191,7 @@ class Log(commands.Cog):
         for m in member:
             await channel.set_permissions(m, read_messages=True)
         await ctx.message.add_reaction(self.tick)
-
-    @commands.command()
-    @commands.has_permissions(administrator=True)
-    async def init(self, ctx):
-        guild = ctx.guild
-        category = get(guild.categories, name="Text Channels")
-        basic = ["welcome", "rules", "testing", "logs"]
-        for channel in basic:
-            await guild.create_text_channel(channel, category=category)
-        await ctx.send("Added text channels", delete_after=2)
-        await ctx.message.delete(delay=3)
+'''
 
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -214,7 +215,7 @@ class Log(commands.Cog):
 
         tchannels = guild.text_channels
         vchannels = guild.voice_channels
-        info = f"{humans}\n{get(self.guild.emojis, name='online')}{online}  {get(self.guild.emojis, name='idle')}{idle} {get(self.guild.emojis, name='dnd')}{dnd}  {get(self.guild.emojis, name='offline')} {offline}"
+        info = f"{humans}\n{get(self.guild.emojis, name='online')}{online}\n{get(self.guild.emojis, name='idle')}{idle}\n{get(self.guild.emojis, name='dnd')}{dnd}\n{get(self.guild.emojis, name='offline')} {offline}"
         stat = Embed()
         stat.color = 0x40EC96
         stat.title = f"{guild.name} {self.load}"
@@ -223,9 +224,11 @@ class Log(commands.Cog):
         stat.add_field(name=f"Channels", value=f"{len(tchannels)} {get(self.guild.emojis, name='script')}, {len(vchannels)} {get(self.guild.emojis, name='vc')}", inline=True)
         stat.add_field(name="Owner", value=guild.owner, inline=True)
         stat.add_field(name="Region", value=guild.region, inline=True)
-        stat.add_field(name="Roles", value=len(guild.roles), inline=True)
-        stat.add_field(name="Emojis", value=" ".join(str(emoji) for emoji in guild.emojis), inline=False)
-
+        stat.add_field(name="Roles", value=f"{len(guild.roles)}", inline=True)
+        em = [str(emoji) for emoji in guild.emojis]
+        stat.add_field(name="Emojis", value=' '.join(em[:30]), inline=False)
+        if len(em) > 30:
+            stat.add_field(name="Contd", value=' '.join(em[30:]), inline=False)
         stat.set_thumbnail(url=guild.icon_url)
         stat.set_footer(text="Created at", icon_url=self.bot.user.avatar_url)
         stat.timestamp = guild.created_at
