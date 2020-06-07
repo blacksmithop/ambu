@@ -22,7 +22,7 @@ class Help(commands.Cog):
 
     @commands.command()
     async def help(self, ctx, cog: str = None, sub: str = None):
-        prefix = self.db.getparam(id=ctx.guild.id, key=["prefix"])
+        prefix = self.db.getparam(id=ctx.guild.id, key=["prefix"]) or '?'
 
         cogs = {"🛠 Admin": "Commands for admins",
                 "📷 Image": "Image commands",
@@ -34,7 +34,7 @@ class Help(commands.Cog):
 
         cogcmds = {"admin": ["purge", "mute", "unmute", "cogs"],
                    "log": ["color", "revoke", "invite", "stats", "init"],
-                   "image": ["cat", "fox", "dog", "nature", "porn"],
+                   "image": ["cat", "fox", "dog", "nature", "snap", "porn"],
                    "repl": ["jsk"],
                    "help": ["help"],
                    "settings": ["set", "info"]
@@ -53,6 +53,7 @@ class Help(commands.Cog):
             "fox": ["Random fox image", None, None, None, None],
             "dog": ["Random dog image", None, None, None, None],
             "nature": ["Random nature image", None, None, None, None],
+            "snap": ["Snapshot of a webpage", 5, None, None, "url"],
             "porn": ["Random nature image", None, "is_nsfw", None, None],
             "jsk": ["Run Python code", None, "is_owner", "```py\nfrom math import pi```", None],
             "help": ["Shows the help command", None, None, None, None],

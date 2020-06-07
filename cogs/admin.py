@@ -20,23 +20,17 @@ class Admin(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         cnl = self.db.getparam(id=member.guild.id, key=["welcome"])
+        if not cnl['channel']:
+            return
         cnl = {k: l(cnl[k]) for k in cnl.keys()}
+        print(cnl)
         id = int(sub("[<#>]", '', cnl['channel']))
-        wel = self.bot.get_channel(id=id)
-        if not wel:
-            return
-        role = self.db.getparam(id=member.guild.id, key=["verification", "joinrole"])
-        id = int(sub("[<@&>]", '', role))
-        role = get(member.guild.roles, id=id)
-        if not role:
-            return
-
+        wel = get(member.guild.channels, id=id)
         await wel.send(embed=Embed(
             title=cnl["message"].format(member=member.display_name), color=0x8722EB,
             description=cnl["information"]
         ).set_author(icon_url=member.avatar_url, name=member.display_name))
 
-        await member.add_roles(role)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -45,7 +39,7 @@ class Admin(commands.Cog):
             return
         cnl = {k: l(cnl[k]) for k in cnl.keys()}
         id = int(sub("[<#>]", '', cnl['channel']))
-        wel = self.bot.get_channel(id=id)
+        wel = get(member.guild.channels, id=id)
         await wel.send(embed=Embed(
             title=cnl["message"].format(member=member.display_name), color=0x8722EB
         ).set_author(icon_url=member.avatar_url, name=member.display_name))
@@ -72,7 +66,7 @@ class Admin(commands.Cog):
             return
         cnl = {k: l(cnl[k]) for k in cnl.keys()}
         id = int(sub("[<#>]", '', cnl['verify']))
-        if not self.bot.get_channel(id=id) == ctx.channel:
+        if not get(ctx.author.guild.channels, id=id) == ctx.channel:
             return
         remove = cnl["joinrole"]
         add = self.db.getparam(id=ctx.author.guild.id, key=["roles", "member"])
@@ -84,17 +78,6 @@ class Admin(commands.Cog):
             await ctx.message.add_reaction(self.tick)
             await ctx.author.add_roles(add)
             await ctx.author.remove_roles(remove)
-
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        cnl = self.db.getparam(id=message.guild.id, key=["verification", "verify"])
-        if not cnl:
-            return
-        id = int(sub("[<#>]", '', cnl))
-        if not self.bot.get_channel(id=id) == message.channel:
-            return
-        if not message.author == self.bot.user:
-            await message.delete(delay=2)
 
     @commands.command()
     @commands.has_permissions(manage_roles=True)

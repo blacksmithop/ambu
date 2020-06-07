@@ -14,7 +14,7 @@ basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', lev
 
 def prefix(bot, message):
     p = db.getparam(id=message.guild.id, key=["prefix"])
-    return [p, f'<@!{bot.user.id}> ', f'<@{bot.user.id}> '] or '?'
+    return [p or '?', f'<@!{bot.user.id}> ', f'<@{bot.user.id}> ']
 
 
 bot = commands.Bot(command_prefix=prefix, description='Multi-purpose Discord Bot', case_insensitive=True)
@@ -86,6 +86,5 @@ async def load(ctx, cogout):
 if __name__ == '__main__':
     try:
         bot.run(token)
-
     except LoginFailure:
         error("Token is Invalid")

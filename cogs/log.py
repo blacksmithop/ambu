@@ -102,11 +102,12 @@ class Log(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
-        log = int(sub("[<#>]", '', self.db.getparam(id=before.guild.id, key=["logs", "channel"])))
+        id = self.db.getparam(id=before.guild.id, key=["logs", "channel"])
+        if not id:
+            return
+        log = int(sub("[<#>]", '', id))
         channel = get(before.guild.channels, id=log)
         if not channel:
-            return
-        if not self.db.getparam(id=before.guild.id, key=["logs", "roles"]):
             return
         old = before.roles
         new = after.roles
@@ -114,9 +115,13 @@ class Log(commands.Cog):
         try:
             if len(old) > len(new):
                 role = [x for x in old if x not in new][0]
+                if not self.db.getparam(id=before.guild.id, key=["logs", "roleremove"]):
+                    return
                 rolechange.description = f"Removed role `{role}`"
             else:
                 role = [x for x in new if x not in old][0]
+                if not self.db.getparam(id=before.guild.id, key=["logs", "roleadd"]):
+                    return
                 rolechange.description = f"Added role `{role}`"
         except IndexError:
             return
@@ -137,7 +142,7 @@ class Log(commands.Cog):
         for invite in await ctx.guild.invites():
             await invite.delete()
         await ctx.send(embed=Embed(title=f'Revoked all invites for {ctx.guild.name}'
-                                       , color=0xDFDF2E))
+                                   , color=0xDFDF2E))
 
     @commands.group(invoke_without_command=True)
     @commands.has_permissions(manage_roles=True)
@@ -181,6 +186,7 @@ class Log(commands.Cog):
         await ctx.send(embed=Embed(
             title=f"Removed Role {role} from {member.display_name}", color=role.color, timestamp=dt.now()
         ))
+
     '''
     @commands.command()
     @commands.has_role("Dev")
@@ -221,14 +227,20 @@ class Log(commands.Cog):
         stat.title = f"{guild.name} {self.load}"
         stat.add_field(name=f"Members", value=info, inline=True)
         stat.add_field(name=f"Bots", value=f"{bots}", inline=True)
-        stat.add_field(name=f"Channels", value=f"{len(tchannels)} {get(self.guild.emojis, name='script')}, {len(vchannels)} {get(self.guild.emojis, name='vc')}", inline=True)
+        stat.add_field(name=f"Channels",
+                       value=f"{len(tchannels)} {get(self.guild.emojis, name='script')}, {len(vchannels)} {get(self.guild.emojis, name='vc')}",
+                       inline=True)
         stat.add_field(name="Owner", value=guild.owner, inline=True)
         stat.add_field(name="Region", value=guild.region, inline=True)
         stat.add_field(name="Roles", value=f"{len(guild.roles)}", inline=True)
         em = [str(emoji) for emoji in guild.emojis]
-        stat.add_field(name="Emojis", value=' '.join(em[:30]), inline=False)
-        if len(em) > 30:
-            stat.add_field(name="Contd", value=' '.join(em[30:]), inline=False)
+        try:
+            if em:
+                stat.add_field(name="Emojis", value=''.join(em[:15]), inline=False)
+                if len(em) > 15:
+                    stat.add_field(name="Contd", value=''.join(em[15:]), inline=False)
+        except:
+            pass
         stat.set_thumbnail(url=guild.icon_url)
         stat.set_footer(text="Created at", icon_url=self.bot.user.avatar_url)
         stat.timestamp = guild.created_at
