@@ -2,7 +2,7 @@ from discord.ext import commands
 from discord import Embed, Member, Colour, Role, Status, Guild
 from discord.utils import get
 from datetime import datetime as dt
-from ambu.db import BotConfig
+from db import BotConfig
 from re import sub
 
 

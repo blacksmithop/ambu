@@ -1,5 +1,5 @@
 from discord.ext import commands
-from ambu import db
+import db
 from discord import Embed
 from pickle import loads as l, dumps as d
 

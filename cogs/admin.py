@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord import Embed, Member
 from discord.utils import get
-from ambu import db
+import db
 from pickle import loads as l
 from re import sub
 from asyncio import sleep
