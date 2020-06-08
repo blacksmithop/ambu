@@ -3,3 +3,4 @@ redispy
 jishaku
 better-profanity
 youtube_dl
+PyNaCl
