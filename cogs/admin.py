@@ -23,7 +23,6 @@ class Admin(commands.Cog):
         if not cnl['channel']:
             return
         cnl = {k: l(cnl[k]) for k in cnl.keys()}
-        print(cnl)
         id = int(sub("[<#>]", '', cnl['channel']))
         wel = get(member.guild.channels, id=id)
         await wel.send(embed=Embed(

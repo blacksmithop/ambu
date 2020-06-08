@@ -1,3 +1,5 @@
 discord.py
 redispy
 jishaku
+better-profanity
+youtube_dl

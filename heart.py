@@ -1,11 +1,11 @@
 from sys import exit
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import Embed
 from os import getenv as e, listdir as l
 from logging import basicConfig, error, ERROR
 from discord.errors import LoginFailure
 from discord.ext.commands.errors import ExtensionFailed
-from db import BotConfig
+from ambu.db import BotConfig
 from discord import Game, Status
 
 db = BotConfig()
@@ -26,6 +26,12 @@ except KeyError:
     exit()
 
 
+@tasks.loop(hours=8)
+async def count():
+    c = len(bot.guilds)
+    await bot.change_presence(status=Status.online, activity=Game(f"?help | Playing in {c} guilds"))
+
+
 @bot.event
 async def on_ready():
     print(f"Logged in as: {bot.user.display_name}")
@@ -37,7 +43,7 @@ async def on_ready():
             except ExtensionFailed:
                 error(f"Failed to load {cog}")
     bot.load_extension("jishaku")
-    await bot.change_presence(status=Status.online, activity=Game("?help"))
+    count.start()
 
 
 @bot.command()

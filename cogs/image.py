@@ -6,6 +6,7 @@ from aiohttp import ClientSession
 from json import loads
 from time import monotonic
 from os import getenv as e
+import db
 
 
 async def get(session: object, url: object) -> object:
@@ -28,6 +29,8 @@ class Image(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.db = db.BotConfig()
+        self.keys = None
 
     @commands.command()
     async def ping(self, ctx):
@@ -112,12 +115,11 @@ class Image(commands.Cog):
         if 'https://' not in url:
             url = f"https://{url}"
         link = f"{base}{url}"
-        print(link)
         await ctx.send(embed=Embed().set_image(url=link))
 
     @commands.command()
     @commands.cooldown(1, 5)
-    async def random(self, ctx):
+    async def image(self, ctx):
         base = "https://api.unsplash.com/photos/random/?client_id="
         client = e("unsp_acc").split(';')
         link = f"{base}{c(client)}"
@@ -125,7 +127,7 @@ class Image(commands.Cog):
             url = await get(session, link)
             url = loads(url)['urls']['regular']
             await ctx.send(embed=Embed().set_image(url=url))
-
+            await self.bot.wait_for("reaction_add")
 
 def setup(bot):
     bot.add_cog(Image(bot))

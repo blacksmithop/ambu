@@ -4,6 +4,7 @@ from discord.utils import get
 from datetime import datetime as dt
 from db import BotConfig
 from re import sub
+from better_profanity import profanity
 
 
 class Log(commands.Cog):
@@ -75,13 +76,17 @@ class Log(commands.Cog):
             await message.delete()
             await message.channel.send(f"Invite links not allowed in chat! {self.warn}")
 
+        elif profanity.contains_profanity(message.content):
+            if self.db.getparam(id=message.guild.id, key=["cussfilter"]):
+                await message.delete()
+
     @commands.Cog.listener()
     async def on_invite_create(self, invite):
         log = int(sub("[<#>]", '', self.db.getparam(id=invite.guild.id, key=["logs", "channel"])))
-        channel = get(invite.inviter.guild.channels, id=log)
+        channel = get(invite.guild.channels, id=log)
         if not channel:
             return
-        if not self.db.get(id=invite.guild.id, key=["logs", "invitecreate"]):
+        if not self.db.getparam(id=invite.guild.id, key=["logs", "invitecreate"]):
             return
         invited = Embed().set_author(name=invite.inviter, url=Embed.Empty, icon_url=invite.inviter.avatar_url)
         invited.timestamp = invite.created_at
@@ -186,18 +191,6 @@ class Log(commands.Cog):
         await ctx.send(embed=Embed(
             title=f"Removed Role {role} from {member.display_name}", color=role.color, timestamp=dt.now()
         ))
-
-    '''
-    @commands.command()
-    @commands.has_role("Dev")
-    async def invite(self, ctx, member: commands.Greedy[Member]):
-        guild = ctx.guild
-        channel = get(guild.channels, name="testing")
-        await channel.set_permissions(guild.default_role, read_messages=False)
-        for m in member:
-            await channel.set_permissions(m, read_messages=True)
-        await ctx.message.add_reaction(self.tick)
-'''
 
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.user)
