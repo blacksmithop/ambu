@@ -4,3 +4,5 @@ jishaku
 better-profanity
 youtube_dl
 PyNaCl
+numpy
+lyricsgenius

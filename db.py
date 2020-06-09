@@ -86,10 +86,10 @@ class BotConfig:
                 guild = l(guild)
         return guild
 
-    def setparam(self, key: [], value, id: int):
-        if not self.r.exists(id):
+    def setparam(self, key: [], value, sid: int):
+        if not self.r.exists(sid):
             return
-        guild = self.r.get(id)
+        guild = self.r.get(sid)
         guild = l(guild)
         if len(key) > 1:
             guild[key[0]][key[1]] = value

@@ -3,11 +3,13 @@ import functools
 import itertools
 import math
 import random
-
 import discord
 import youtube_dl
 from async_timeout import timeout
 from discord.ext import commands
+import lyricsgenius
+from os import getenv as e
+from datetime import datetime as dt
 
 # Silence useless bug reports messages
 youtube_dl.utils.bug_reports_message = lambda: ''
@@ -258,6 +260,7 @@ class Music(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.voice_states = {}
+        self.lyric = lyricsgenius.Genius(client_access_token=e("genius"))
 
     def get_voice_state(self, ctx: commands.Context):
         state = self.voice_states.get(ctx.guild.id)
@@ -281,7 +284,7 @@ class Music(commands.Cog):
         ctx.voice_state = self.get_voice_state(ctx)
 
     async def cog_command_error(self, ctx: commands.Context, error: commands.CommandError):
-        await ctx.send('An error occurred: {}'.format(str(error)))
+       print('An error occurred: {}'.format(str(error)))
 
     @commands.command(name='join', invoke_without_subcommand=True)
     async def _join(self, ctx: commands.Context):
@@ -301,7 +304,7 @@ class Music(commands.Cog):
         If no channel was specified, it joins your channel.
         """
 
-        if not channel and not ctx.author.voice:
+        if channel and not ctx.author.voice:
             raise VoiceError('You are neither connected to a voice channel nor specified a channel to join.')
 
         destination = channel or ctx.author.voice.channel
@@ -335,7 +338,7 @@ class Music(commands.Cog):
         ctx.voice_state.volume = volume / 100
         await ctx.send('Volume of the player set to {}%'.format(volume))
 
-    @commands.command(name='now', aliases=['current', 'playing'])
+    @commands.command(name='now', aliases=['current', 'playing', 'np'])
     async def _now(self, ctx: commands.Context):
         """Displays the currently playing song."""
 
@@ -446,7 +449,7 @@ class Music(commands.Cog):
         Invoke this command again to unloop the song.
         """
 
-        if ctx.voice_state.is_playing:
+        if not ctx.voice_state.is_playing:
             return await ctx.send('Nothing being played at the moment.')
 
         # Inverse boolean value to loop and unloop.
@@ -462,19 +465,67 @@ class Music(commands.Cog):
         A list of these sites can be found here: https://rg3.github.io/youtube-dl/supportedsites.html
         """
 
-        if ctx.voice_state.voice:
+        if not ctx.voice_state.voice:
             await ctx.invoke(self._join)
 
         async with ctx.typing():
             try:
                 source = await YTDLSource.create_source(ctx, search, loop=self.bot.loop)
             except YTDLError as e:
-                await ctx.send('An error occurred while processing this request: {}'.format(str(e)))
+                print('An error occurred while processing this request: {}'.format(str(e)))
             else:
                 song = Song(source)
 
                 await ctx.voice_state.songs.put(song)
                 await ctx.send('Enqueued {}'.format(str(source)))
+
+    @commands.command(name='lines', aliases=['lyrics', 'l'])
+    async def _lyrics(self, ctx: commands.Context, *, song: str):
+        song = self.lyric.search_song(title=song)
+        info = song
+        song = song.lyrics.split('\n')
+        song = [i for i in song if '[' not in i]
+        n = 20
+        song = [song[i * n:(i + 1) * n] for i in range((len(song) + n - 1) // n)]
+        p = len(song)
+        lyr = discord.Embed(title=info.title, url=info.url)
+        lyr.timestamp = dt.strptime(info.year, '%Y-%m-%d')
+        lyr.set_thumbnail(url=info.song_art_image_url)
+        i = 0
+        lyr.set_footer(text=f"Page {i+1}/{p}")
+        lyr.description = '\n'.join(song[i])
+        toggle = ["◀", "▶"]
+        msg = await ctx.send(embed=lyr)
+        for e in toggle:
+            await msg.add_reaction(e)
+
+        def reac_check(r,u):
+            return msg.id==r.message.id and u!=self.bot.user and r.emoji in toggle
+
+        while True:
+            try:
+                reaction, user = await self.bot.wait_for('reaction_add', timeout=20.0, check=reac_check)
+                em = str(reaction.emoji)
+                if user!=self.bot.user:
+                    await msg.remove_reaction(emoji=em, member=user)
+            except TimeoutError:
+                print("caught")
+            if em == toggle[0]:
+                if i==0:
+                    return
+                else:
+                    i -= 1
+                    lyr.set_footer(text=f"Page {i + 1}/{p}")
+                    lyr.description = '\n'.join(song[i])
+                    await msg.edit(embed=lyr)
+            elif em == toggle[1]:
+                if i == p:
+                    return
+                else:
+                    i += 1
+                    lyr.set_footer(text=f"Page {i + 1}/{p}")
+                    lyr.description = '\n'.join(song[i])
+                    await msg.edit(embed=lyr)
 
     @_join.before_invoke
     @_play.before_invoke

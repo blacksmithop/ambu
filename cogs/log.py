@@ -218,22 +218,40 @@ class Log(commands.Cog):
         stat = Embed()
         stat.color = 0x40EC96
         stat.title = f"{guild.name} {self.load}"
-        stat.add_field(name=f"Members", value=info, inline=True)
-        stat.add_field(name=f"Bots", value=f"{bots}", inline=True)
-        stat.add_field(name=f"Channels",
+        stat.add_field(name="Members", value=info, inline=True)
+        stat.add_field(name="Bots", value=f"{bots}", inline=True)
+        stat.add_field(name="Channels",
                        value=f"{len(tchannels)} {get(self.guild.emojis, name='script')}, {len(vchannels)} {get(self.guild.emojis, name='vc')}",
                        inline=True)
         stat.add_field(name="Owner", value=guild.owner, inline=True)
         stat.add_field(name="Region", value=guild.region, inline=True)
         stat.add_field(name="Roles", value=f"{len(guild.roles)}", inline=True)
-        em = [str(emoji) for emoji in guild.emojis]
-        try:
-            if em:
-                stat.add_field(name="Emojis", value=''.join(em[:15]), inline=False)
-                if len(em) > 15:
-                    stat.add_field(name="Contd", value=''.join(em[15:]), inline=False)
-        except:
-            pass
+
+        emojitext = ""
+        emojicount = 0
+        for emoji in guild.emojis:
+            if emoji.animated:
+                emojiMention = "<a:" + emoji.name + ":" + str(emoji.id) + ">"
+            else:
+                emojiMention = "<:" + emoji.name + ":" + str(emoji.id) + ">"
+            test = emojitext + emojiMention
+            if len(test) > 1024:
+                emojicount += 1
+                if emojicount == 1:
+                    ename = "Emojis ({:,} total)".format(len(guild.emojis))
+                else:
+                    ename = "Emojis (Continued)"
+                stat.add_field(name=ename, value=emojitext, inline=True)
+                emojitext = emojiMention
+            else:
+                emojitext = emojitext + emojiMention
+
+        if len(emojitext):
+            if emojicount == 0:
+                emojiname = "Emojis ({} total)".format(len(guild.emojis))
+            else:
+                emojiname = "Emojis (Continued)"
+            stat.add_field(name=emojiname, value=emojitext, inline=True)
         stat.set_thumbnail(url=guild.icon_url)
         stat.set_footer(text="Created at", icon_url=self.bot.user.avatar_url)
         stat.timestamp = guild.created_at

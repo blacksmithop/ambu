@@ -14,8 +14,8 @@ class Errors(commands.Cog):
         msg = Embed(color=0x0EEA7C)
         if isinstance(error, commands.errors.CommandError):
             msg.title = error.args[0]
+            await ctx.send(embed=msg)
 
-        await ctx.send(embed=msg)
 
 
 def setup(bot):

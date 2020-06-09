@@ -28,7 +28,7 @@ class Help(commands.Cog):
                 "📷 Image": "Image commands",
                 "🧾 Log": "Logging",
                 f"{self.wumpus} Settings ": "Bot settings",
-                f"{self.exec} Repl": f"Python interpreter",
+                f"{self.exec} Repl":    "Python interpreter",
                 f"{self.server} Server": "Web-server"
                 }
 
@@ -87,7 +87,7 @@ class Help(commands.Cog):
         if cog is None:
             hembed.title = f"Cogs {self.tick}"
             hembed.description = f"Do {prefix}help [cog] for more information"
-            for cog in cogs.keys():
+            for cog in cogs:
                 hembed.add_field(name=f"**{cog}**", value=f"`{cogs[cog]}`", inline=True)
 
         cog = cog.lower()

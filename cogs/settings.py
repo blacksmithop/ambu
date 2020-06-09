@@ -29,7 +29,7 @@ class Settings(commands.Cog):
                         url="https://github.com/blacksmithop/ambu")
         for k in stats.keys():
             v = stats[k]
-            if type(v) == dict:
+            if type(v) is dict:
                 value = ""
                 for i in v:
                     value += f"`{i}`: {l(v[i])}\n"

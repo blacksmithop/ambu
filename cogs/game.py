@@ -1,9 +1,8 @@
 from discord.ext import commands
 from discord import Embed
 from db import BotConfig
-from numpy import ones as o
 from discord.utils import get
-from asyncio import sleep, TimeoutError
+from asyncio import TimeoutError
 from numpy import ones
 
 
@@ -20,7 +19,7 @@ class Game(commands.Cog):
 
     @commands.command()
     async def okp(self, ctx):
-        members = set({})
+        members = set()
         oram = Embed(title="💃 Oramma Kadayil Poyi 🌊", color=0xf79100, description="React to join the game 🐟")
         m = await ctx.send(embed=oram)
         await m.add_reaction(self.join)
@@ -40,7 +39,7 @@ class Game(commands.Cog):
         members.remove(self.bot.user)
 
         await ctx.send(embed=Embed(title="🔹 Players 🔸",
-                                   description=f'\n'.join(m.display_name for m in members),
+                                   description='\n'.join(m.display_name for m in members),
                                    color=0xf79100))
 
         def kkk(gb, rp, cp, n, num, rc):
@@ -74,7 +73,6 @@ class Game(commands.Cog):
         rp, cp = 0, 0
         colors = []
         gb = ones((len(members), 5))
-        print("GAME", gb)
         members = list(members)
 
         while True:
@@ -106,9 +104,9 @@ class Game(commands.Cog):
             print(r,rp,cp)
             gb[rp, cp] = 0
             status = ""
-
-            for i in range(len(members)):
-                status += f"{members[i].display_name}: |{' '.join(str(gb[i])[1:-1])}|\n"
+            for mem in enumerate(members):
+                i, m = mem
+                status += f"{m.display_name}: |{' '.join(str(gb[i])[1:-1])}|\n"
             await ctx.send(embed=Embed(title="Board",
                                        description=f"```{status}```",
                                        color=0xf79100))

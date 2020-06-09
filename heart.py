@@ -1,11 +1,10 @@
-from sys import exit
 from discord.ext import commands, tasks
 from discord import Embed
 from os import getenv as e, listdir as l
 from logging import basicConfig, error, ERROR
 from discord.errors import LoginFailure
 from discord.ext.commands.errors import ExtensionFailed
-from ambu.db import BotConfig
+from db import BotConfig
 from discord import Game, Status
 
 db = BotConfig()
