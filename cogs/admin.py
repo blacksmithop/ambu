@@ -30,7 +30,6 @@ class Admin(commands.Cog):
             description=cnl["information"]
         ).set_author(icon_url=member.avatar_url, name=member.display_name))
 
-
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         cnl = self.db.getparam(id=member.guild.id, key=["leave"])
@@ -141,6 +140,43 @@ class Admin(commands.Cog):
             await ctx.channel.purge(limit=limit, check=is_me)
             return
         await ctx.channel.purge(limit=limit + 1)
+
+    @commands.command(name='selfrole', aliases=['sr', 'dis'])
+    async def selfrole(self, ctx, role: str = None):
+        member = ctx.author
+        s_roles = self.db.getparam(id=ctx.guild.id, key=['roles', 'self'])
+        s_roles = set(s_roles.split(','))
+        r_act = Embed(color=0x4287f5)
+        if not role or role not in s_roles:
+            r_act.title = f"Selfroles for {ctx.guild.name}"
+            r_act.description = ' '.join(s_roles)
+            await ctx.send(embed=r_act)
+            return
+
+        if any(role in s_roles for role in [role, role.upper()]):
+            add_role = get(ctx.guild.roles, name=role)
+            if not add_role:
+                add_role = get(ctx.guild.roles, name=role.upper())
+
+        mem_roles = [i.name for i in ctx.author.roles]
+        c_role = list(set(s_roles) & set(mem_roles))
+        if len(c_role) == 1:
+            com = c_role[0]
+            if add_role.name == com:
+                r_act.description = f"⛔ {member.mention}, already has role {add_role.mention}"
+                await ctx.send(embed=r_act)
+                return
+            else:
+                rem_role = get(ctx.guild.roles, name=com)
+                await member.remove_roles(rem_role)
+                await member.add_roles(add_role)
+                r_act.description = f"⛔ Removed role {rem_role.mention} from {member.mention}\n\n✅ Replaced with {add_role.mention}"
+                await ctx.send(embed=r_act)
+
+        elif len(c_role) == 0:
+            await member.add_roles(add_role)
+            r_act.description = f"✅ Added role {add_role.mention} to {member.mention}"
+            await ctx.send(embed=r_act)
 
 
 def setup(bot):

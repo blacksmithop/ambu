@@ -77,6 +77,8 @@ class Log(commands.Cog):
             await message.channel.send(f"Invite links not allowed in chat! {self.warn}")
 
         elif profanity.contains_profanity(message.content):
+            if message.channel.is_nsfw():
+                return
             if self.db.getparam(id=message.guild.id, key=["cussfilter"]):
                 await message.delete()
 

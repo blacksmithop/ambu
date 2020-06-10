@@ -28,7 +28,7 @@ class Help(commands.Cog):
                 "📷 Image": "Image commands",
                 "🧾 Log": "Logging",
                 f"{self.wumpus} Settings ": "Bot settings",
-                f"{self.exec} Repl":    "Python interpreter",
+                f"{self.exec} Repl": "Python interpreter",
                 f"{self.server} Server": "Web-server"
                 }
 

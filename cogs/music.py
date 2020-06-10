@@ -298,7 +298,7 @@ class Music(commands.Cog):
         ctx.voice_state.voice = await destination.connect()
 
     @commands.command(name='summon')
-    @commands.has_permissions(manage_guild=True)
+    @commands.has_permissions()
     async def _summon(self, ctx: commands.Context, *, channel: discord.VoiceChannel = None):
         """Summons the bot to a voice channel.
         If no channel was specified, it joins your channel.
@@ -315,7 +315,7 @@ class Music(commands.Cog):
         ctx.voice_state.voice = await destination.connect()
 
     @commands.command(name='leave', aliases=['disconnect'])
-    @commands.has_permissions(manage_guild=True)
+    @commands.has_permissions()
     async def _leave(self, ctx: commands.Context):
         """Clears the queue and leaves the voice channel."""
 
@@ -325,7 +325,7 @@ class Music(commands.Cog):
         await ctx.voice_state.stop()
         del self.voice_states[ctx.guild.id]
 
-    @commands.command(name='volume')
+    @commands.command(name='volume', aliases=['v', 'vol'])
     async def _volume(self, ctx: commands.Context, *, volume: int):
         """Sets the volume of the player."""
 
@@ -335,7 +335,7 @@ class Music(commands.Cog):
         if 0 > volume > 100:
             return await ctx.send('Volume must be between 0 and 100')
 
-        ctx.voice_state.volume = volume / 100
+        ctx.voice_state.current.source.volume = volume / 100
         await ctx.send('Volume of the player set to {}%'.format(volume))
 
     @commands.command(name='now', aliases=['current', 'playing', 'np'])
@@ -344,7 +344,7 @@ class Music(commands.Cog):
 
         await ctx.send(embed=ctx.voice_state.current.create_embed())
 
-    @commands.command(name='pause')
+    @commands.command(name='pause', aliases=['pa'])
     @commands.has_permissions(manage_guild=True)
     async def _pause(self, ctx: commands.Context):
         """Pauses the currently playing song."""
@@ -353,7 +353,7 @@ class Music(commands.Cog):
             ctx.voice_state.voice.pause()
             await ctx.message.add_reaction('⏯')
 
-    @commands.command(name='resume')
+    @commands.command(name='resume', aliases=['r'])
     @commands.has_permissions(manage_guild=True)
     async def _resume(self, ctx: commands.Context):
         """Resumes a currently paused song."""
@@ -362,8 +362,8 @@ class Music(commands.Cog):
             ctx.voice_state.voice.resume()
             await ctx.message.add_reaction('⏯')
 
-    @commands.command(name='stop')
-    @commands.has_permissions(manage_guild=True)
+    @commands.command(name='stop', aliases=['st'])
+    @commands.has_permissions()
     async def _stop(self, ctx: commands.Context):
         """Stops playing song and clears the queue."""
 
@@ -373,7 +373,7 @@ class Music(commands.Cog):
             ctx.voice_state.voice.stop()
             await ctx.message.add_reaction('⏹')
 
-    @commands.command(name='skip')
+    @commands.command(name='skip', aliases=['s'])
     async def _skip(self, ctx: commands.Context):
         """Vote to skip a song. The requester can automatically skip.
         3 skip votes are needed for the song to be skipped.
@@ -400,7 +400,7 @@ class Music(commands.Cog):
         else:
             await ctx.send('You have already voted to skip this song.')
 
-    @commands.command(name='queue')
+    @commands.command(name='queue', aliases=['q'])
     async def _queue(self, ctx: commands.Context, *, page: int = 1):
         """Shows the player's queue.
         You can optionally specify the page to show. Each page contains 10 elements.
@@ -423,7 +423,7 @@ class Music(commands.Cog):
                  .set_footer(text='Viewing page {}/{}'.format(page, pages)))
         await ctx.send(embed=embed)
 
-    @commands.command(name='shuffle')
+    @commands.command(name='shuffle', aliases=['sh'])
     async def _shuffle(self, ctx: commands.Context):
         """Shuffles the queue."""
 
@@ -433,7 +433,7 @@ class Music(commands.Cog):
         ctx.voice_state.songs.shuffle()
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='remove')
+    @commands.command(name='remove', aliases=['re'])
     async def _remove(self, ctx: commands.Context, index: int):
         """Removes a song from the queue at a given index."""
 
@@ -443,7 +443,7 @@ class Music(commands.Cog):
         ctx.voice_state.songs.remove(index - 1)
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='loop')
+    @commands.command(name='loop', aliases=['lp'])
     async def _loop(self, ctx: commands.Context):
         """Loops the currently playing song.
         Invoke this command again to unloop the song.
@@ -456,7 +456,7 @@ class Music(commands.Cog):
         ctx.voice_state.loop = not ctx.voice_state.loop
         await ctx.message.add_reaction('✅')
 
-    @commands.command(name='play')
+    @commands.command(name='play', aliases=['p'])
     async def _play(self, ctx: commands.Context, *, search: str):
         """Plays a song.
         If there are songs in the queue, this will be queued until the
@@ -499,8 +499,8 @@ class Music(commands.Cog):
         for e in toggle:
             await msg.add_reaction(e)
 
-        def reac_check(r,u):
-            return msg.id==r.message.id and u!=self.bot.user and r.emoji in toggle
+        def reac_check(r, u):
+            return msg.id == r.message.id and u!=self.bot.user and r.emoji in toggle
 
         while True:
             try:

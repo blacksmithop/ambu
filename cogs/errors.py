@@ -12,9 +12,40 @@ class Errors(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         msg = Embed(color=0x0EEA7C)
-        if isinstance(error, commands.errors.CommandError):
-            msg.title = error.args[0]
-            await ctx.send(embed=msg)
+        if isinstance(error, commands.errors.MissingRequiredArgument):
+            msg.title = "Missing Argument ➖"
+            msg.description = error.args[0]
+            return await ctx.send(embed=msg)
+        if isinstance(error, commands.errors.CommandOnCooldown):
+            msg.title = "On Cooldown ⏰"
+            msg.description = error.args[0]
+            return await ctx.send(embed=msg)
+        if isinstance(error, commands.errors.MissingPermissions):
+            msg.title = "Missing Permission ⛔"
+            msg.description = error.args[0]
+            return await ctx.send(embed=msg)
+        if isinstance(error, commands.errors.BotMissingAnyRole):
+            msg.title = "Bot Missing Role 🤖"
+            msg.description = error.args[0]
+            return await ctx.send(embed=msg)
+        if isinstance(error, commands.errors.NotOwner):
+            msg.title = "Owner Only ♾"
+            msg.description = error.args[0]
+            return await ctx.send(embed=msg)
+        if isinstance(error, commands.errors.NSFWChannelRequired):
+            msg.title = "NSFW Command 👙"
+            msg.description = error.args[0]
+            return await ctx.send(embed=msg)
+        if isinstance(error, commands.errors.BadArgument):
+            msg.title = "Bad Argument 💥"
+            msg.description = error.args[0]
+            return await ctx.send(embed=msg)
+        if isinstance(error, commands.errors.TooManyArguments):
+            msg.title = "Extra Arguments ➕"
+            msg.description = error.args[0]
+            return await ctx.send(embed=msg)
+        if isinstance(error, TimeoutError):
+            return
 
 
 
