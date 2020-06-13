@@ -379,7 +379,7 @@ class Music(commands.Cog):
         3 skip votes are needed for the song to be skipped.
         """
 
-        if ctx.voice_state.is_playing:
+        if not ctx.voice_state.is_playing:
             return await ctx.send('Not playing any music right now...')
 
         voter = ctx.message.author

@@ -1,0 +1,46 @@
+{
+  "prefix": none,
+
+  "channels": {
+              "welcome": {
+                  "channel": none,
+                  "message": none,
+                  "information": none
+              },
+              "leave": {
+                  "channel": none,
+                  "message": none
+              },
+              "logs": {
+                  "channel": none,
+                  "delete": none,
+                  "edit": none,
+                  "role": none,
+                  "invite": none
+              },
+              "testing": {
+                  "channel": none
+              }
+            },
+
+            "roles": {
+                "self": none,
+                "member": none,
+                "mod": none,
+                "muted": none,
+                "dev": none
+            },
+
+            "verify": {
+                "channel": none,
+                "message": none,
+                "role": none
+            },
+
+            "filters":
+            {
+            "curse": none,
+            "spam": none,
+            "invite": none,
+            }
+}

@@ -1,1 +1,3 @@
-./ambu/cogs/AddOns/*
+!/cogs/AddOns/
+!/richpres.py
+!/guild.json

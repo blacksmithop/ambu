@@ -17,29 +17,37 @@ class Admin(commands.Cog):
         self.guild = self.bot.get_guild(self.db.fetch(name="emote"))
         self.tick = get(self.guild.emojis, name="agree")
 
+    def pid(self, id: int):
+        return int(sub("[<#>]", '', id))
+
+    def rid(self, id: int):
+        return int(sub("[<@&>]", '', id))
+
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        cnl = self.db.getparam(id=member.guild.id, key=["welcome"])
-        if not cnl['channel']:
+        channel = self.db.getchannel(id=member.guild.id, channel="welcome")
+        if not channel['channel']:
             return
-        cnl = {k: l(cnl[k]) for k in cnl.keys()}
-        id = int(sub("[<#>]", '', cnl['channel']))
-        wel = get(member.guild.channels, id=id)
-        await wel.send(embed=Embed(
-            title=cnl["message"].format(member=member.display_name), color=0x8722EB,
-            description=cnl["information"]
+        cnl = get(member.guild.channels, id=self.pid(channel['channel']))
+        if not channel['message']:
+            channel['message'] = "Welcome {member] to {server}"
+        if not channel['information']:
+            channel['infromation'] = "Follow the rules and have a good time!"
+        await cnl.send(embed=Embed(
+            title=channel["message"].format(member=member.display_name, server=member.guild.name), color=0x8722EB,
+            description=channel["information"]
         ).set_author(icon_url=member.avatar_url, name=member.display_name))
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        cnl = self.db.getparam(id=member.guild.id, key=["leave"])
-        if not cnl['channel']:
+        channel = self.db.getchannel(id=member.guild.id, channel="leave")
+        if not channel['channel']:
             return
-        cnl = {k: l(cnl[k]) for k in cnl.keys()}
-        id = int(sub("[<#>]", '', cnl['channel']))
-        wel = get(member.guild.channels, id=id)
-        await wel.send(embed=Embed(
-            title=cnl["message"].format(member=member.display_name), color=0x8722EB
+        cnl = get(member.guild.channels, id=self.pid(channel['channel']))
+        if not channel['message']:
+            channel['message'] = "Bye {member}"
+        await cnl.send(embed=Embed(
+            title=channel["message"].format(member=member.display_name), color=0x8722EB
         ).set_author(icon_url=member.avatar_url, name=member.display_name))
 
     @commands.command()
@@ -59,23 +67,17 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.has_role("Joined")
     async def accept(self, ctx):
-        cnl = self.db.getparam(id=ctx.author.guild.id, key=["verification"])
-        if not cnl["verify"]:
+        channel = self.db.getchannel(id=ctx.author.guild.id, channel="verify")
+        if not channel['channel']:
             return
-        cnl = {k: l(cnl[k]) for k in cnl.keys()}
-        id = int(sub("[<#>]", '', cnl['verify']))
-        if not get(ctx.author.guild.channels, id=id) == ctx.channel:
+        cnl = get(ctx.author.guild.channels, id=self.pid(channel['channel']))
+        if not cnl == ctx.channel:
             return
-        remove = cnl["joinrole"]
-        add = self.db.getparam(id=ctx.author.guild.id, key=["roles", "member"])
-        if add and remove:
-            add = int(sub('[<@&>]', '', add))
-            remove = int(sub('[<@&>]', '', remove))
-            add = get(ctx.guild.roles, id=add)
-            remove = get(ctx.guild.roles, id=remove)
+        add = self.db.getrole(id=ctx.author.guild.id, role="member")
+        if add:
+            add = get(ctx.author.guild.roles, id=self.rid(id=add))
             await ctx.message.add_reaction(self.tick)
             await ctx.author.add_roles(add)
-            await ctx.author.remove_roles(remove)
 
     @commands.command()
     @commands.has_permissions(manage_roles=True)
@@ -84,44 +86,37 @@ class Admin(commands.Cog):
         """Mutes a member"""
         if self.bot.user == member or member == ctx.author:
             return
-        m = self.db.getparam(id=ctx.guild.id, key=["roles", "muted"])
-        if not m:
+        muted_role = self.db.getrole(id=ctx.author.guild.id, role="muted")
+        muted_role = get(ctx.author.guild.roles, id=self.rid(id=muted_role))
+        if not muted_role:
             return
-        id = int(sub('[<@&>]', '', m))
-        muted_role = get(ctx.guild.roles, id=id)
-
-        if unit in ['s', 'sec', 'second', 'seconds']:
-            num = num
-        if unit in ['m', 'min', 'minute', 'minutes']:
-            num = num * 60
-        if unit in ['h', 'hr', 'hour', 'hours']:
-            num = num * 60 * 60
-        await ctx.message.add_reaction(self.tick)
-        await member.add_roles(muted_role)
 
         await ctx.send(embed=Embed(
-            title=f"Muted {member.display_name} for {num}{unit}", color=0x2EDF87
+            title=f"Muted {member.display_name} for {num} hours", color=0x2EDF87
         ))
+        num = num * 60 * 60
 
+        await ctx.message.add_reaction(self.tick)
+        await member.add_roles(muted_role)
         if num > 0:
             await sleep(num)
             for role in member.roles:
-                if role.name == "Muted":
+                if role == muted_role:
                     await member.remove_roles(muted_role)
                     await ctx.send(embed=Embed(
                         title=f"{member.display_name} is now un-muted", color=0x2EDF87
                     ))
+                    break
 
     @commands.command()
     @commands.has_permissions(manage_roles=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def unmute(self, ctx, member: Member):
         """Unmutes a member"""
-        m = self.db.getparam(id=ctx.guild.id, key=["roles", "muted"])
-        if not m:
+        muted_role = self.db.getrole(id=ctx.author.guild.id, role="muted")
+        muted_role = get(ctx.author.guild.roles, id=self.rid(id=muted_role))
+        if not muted_role:
             return
-        id = int(sub('[<@&>]', '', m))
-        muted_role = get(ctx.guild.roles, id=id)
         if muted_role not in member.roles:
             return
         await ctx.message.add_reaction(self.tick)
@@ -144,38 +139,38 @@ class Admin(commands.Cog):
     @commands.command(name='selfrole', aliases=['sr', 'dis'])
     async def selfrole(self, ctx, role: str = None):
         member = ctx.author
-        s_roles = self.db.getparam(id=ctx.guild.id, key=['roles', 'self'])
+        s_roles = self.db.getrole(id=ctx.guild.id, role='self')
+        role = get(ctx.guild.roles, name=role)
         s_roles = set(s_roles.split(','))
+        s_roles = [get(ctx.guild.roles, id=self.rid(r)) for r in s_roles]
+        print(s_roles)
+        print(role)
         r_act = Embed(color=0x4287f5)
-        if not role or role not in s_roles:
+        if role is None or role not in s_roles:
             r_act.title = f"Selfroles for {ctx.guild.name}"
-            r_act.description = ' '.join(s_roles)
+            r_act.description = ' '.join([r.name for r in s_roles])
             await ctx.send(embed=r_act)
             return
 
-        if any(role in s_roles for role in [role, role.upper()]):
-            add_role = get(ctx.guild.roles, name=role)
-            if not add_role:
-                add_role = get(ctx.guild.roles, name=role.upper())
-
-        mem_roles = [i.name for i in ctx.author.roles]
+        mem_roles = [i for i in ctx.author.roles]
         c_role = list(set(s_roles) & set(mem_roles))
+
         if len(c_role) == 1:
-            com = c_role[0]
-            if add_role.name == com:
-                r_act.description = f"⛔ {member.mention}, already has role {add_role.mention}"
+            com = c_role[0].name
+            if role.name == com:
+                r_act.description = f"⛔ {member.mention}, already has role {role.mention}"
                 await ctx.send(embed=r_act)
                 return
             else:
                 rem_role = get(ctx.guild.roles, name=com)
                 await member.remove_roles(rem_role)
-                await member.add_roles(add_role)
-                r_act.description = f"⛔ Removed role {rem_role.mention} from {member.mention}\n\n✅ Replaced with {add_role.mention}"
+                await member.add_roles(role)
+                r_act.description = f"⛔ Removed role {rem_role.mention} from {member.mention}\n\n✅ Replaced with {role.mention}"
                 await ctx.send(embed=r_act)
 
         elif len(c_role) == 0:
-            await member.add_roles(add_role)
-            r_act.description = f"✅ Added role {add_role.mention} to {member.mention}"
+            await member.add_roles(role)
+            r_act.description = f"✅ Added role {role.mention} to {member.mention}"
             await ctx.send(embed=r_act)
 
 

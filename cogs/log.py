@@ -1,10 +1,10 @@
 from discord.ext import commands
-from discord import Embed, Member, Colour, Role, Status, Guild
+from discord import Embed, Member, Colour, Role, Status, Guild, Object
 from discord.utils import get
 from datetime import datetime as dt
 from db import BotConfig
-from re import sub
 from better_profanity import profanity
+from re import sub
 
 
 class Log(commands.Cog):
@@ -20,17 +20,20 @@ class Log(commands.Cog):
         self.warn = get(self.guild.emojis, name="muted")
         self.load = get(self.guild.emojis, name="loading")
 
+    def pid(self, id: int):
+        return int(sub("[<#>]", '', id))
+
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         if message.author == self.bot.user:
             return
 
-        log = int(sub("[<#>]", '', self.db.getparam(id=message.guild.id, key=["logs", "channel"])))
-        channel = get(message.author.guild.channels, id=log)
-        if not channel:
+        channel = self.db.getchannel(id=message.guild.id, channel="logs")
+        if not channel['channel']:
             return
-        if not self.db.getparam(id=message.guild.id, key=["logs", "delete"]):
+        if not channel['delete']:
             return
+        channel = get(message.guild.channels, id=self.pid(channel['channel']))
         deleted = Embed(
             description=f"Message deleted in {message.channel.mention}", color=0x4040EC
         ).set_author(name=message.author, url=Embed.Empty, icon_url=message.author.avatar_url)
@@ -43,14 +46,13 @@ class Log(commands.Cog):
     async def on_message_edit(self, before, after):
         if before.author == self.bot.user:
             return
-        log = int(sub("[<#>]", '', self.db.getparam(id=before.guild.id, key=["logs", "channel"])))
-        channel = get(before.author.guild.channels, id=log)
-        if not channel:
+
+        channel = self.db.getchannel(id=before.guild.id, channel="logs")
+        if not channel['channel']:
             return
-        if not self.db.getparam(id=before.guild.id, key=["logs", "edit"]):
+        if not channel['edit']:
             return
-        log = int(sub("[<#>]", '', self.db.getparam(id=before.guild.id, key=["logs", "channel"])))
-        channel = get(before.author.guild.channels, id=log)
+        channel = get(before.guild.channels, id=self.pid(channel['channel']))
         edited = Embed(
             description=f"Message edited in {before.channel.mention} [Jump]({after.jump_url})", color=0x9640EC
         ).set_author(name=before.author, url=Embed.Empty, icon_url=before.author.avatar_url)
@@ -67,29 +69,30 @@ class Log(commands.Cog):
             for perm, value in message.author.guild_permissions:
                 if value and perm == 'manage_messages':
                     return
-                log = int(sub("[<#>]", '', self.db.getparam(id=message.guild.id, key=["logs", "channel"])))
-                channel = get(message.author.guild.channels, id=log)
-                if not channel:
-                    return
-                if not self.db.getparam(id=message.guild.id, key=["invitefilter"]):
-                    return
+            if message.author == self.bot.user:
+                return
+            rem = self.db.getfilter(id=message.guild.id, filter="invite")
+            if not rem:
+                return
             await message.delete()
             await message.channel.send(f"Invite links not allowed in chat! {self.warn}")
 
         elif profanity.contains_profanity(message.content):
             if message.channel.is_nsfw():
                 return
-            if self.db.getparam(id=message.guild.id, key=["cussfilter"]):
+            c = self.db.getfilter(id=message.guild.id, filter="swear")
+            if c:
                 await message.delete()
 
     @commands.Cog.listener()
     async def on_invite_create(self, invite):
-        log = int(sub("[<#>]", '', self.db.getparam(id=invite.guild.id, key=["logs", "channel"])))
-        channel = get(invite.guild.channels, id=log)
-        if not channel:
+
+        channel = self.db.getchannel(id=invite.guild.id, channel="logs")
+        if not channel['channel']:
             return
-        if not self.db.getparam(id=invite.guild.id, key=["logs", "invitecreate"]):
+        if not channel['invite']:
             return
+        channel = get(invite.guild.channels, id=self.pid(channel['channel']))
         invited = Embed().set_author(name=invite.inviter, url=Embed.Empty, icon_url=invite.inviter.avatar_url)
         invited.timestamp = invite.created_at
         invited.description = invite.url
@@ -109,11 +112,12 @@ class Log(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
-        id = self.db.getparam(id=before.guild.id, key=["logs", "channel"])
-        if not id:
+        channel = self.db.getchannel(id=before.guild.id, channel="logs")
+        if not channel['channel']:
             return
-        log = int(sub("[<#>]", '', id))
-        channel = get(before.guild.channels, id=log)
+        if not channel['role']:
+            return
+        channel = get(before.guild.channels, id=self.pid(channel['channel']))
         if not channel:
             return
         old = before.roles
@@ -122,13 +126,9 @@ class Log(commands.Cog):
         try:
             if len(old) > len(new):
                 role = [x for x in old if x not in new][0]
-                if not self.db.getparam(id=before.guild.id, key=["logs", "roleremove"]):
-                    return
                 rolechange.description = f"Removed role `{role}`"
             else:
                 role = [x for x in new if x not in old][0]
-                if not self.db.getparam(id=before.guild.id, key=["logs", "roleadd"]):
-                    return
                 rolechange.description = f"Added role `{role}`"
         except IndexError:
             return

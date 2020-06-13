@@ -12,7 +12,7 @@ basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', lev
 
 
 def prefix(bot, message):
-    p = db.getparam(id=message.guild.id, key=["prefix"])
+    p = db.getprefix(id=message.guild.id)
     return [p or '?', f'<@!{bot.user.id}> ', f'<@{bot.user.id}> ']
 
 

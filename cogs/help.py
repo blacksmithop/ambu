@@ -22,7 +22,7 @@ class Help(commands.Cog):
 
     @commands.command()
     async def help(self, ctx, cog: str = None, sub: str = None):
-        prefix = self.db.getparam(id=ctx.guild.id, key=["prefix"]) or '?'
+        prefix = self.db.getprefix(id=ctx.guild.id) or '?'
 
         cogs = {"🛠 Admin": "Commands for admins",
                 "📷 Image": "Image commands",

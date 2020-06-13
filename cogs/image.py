@@ -6,7 +6,7 @@ from aiohttp import ClientSession
 from json import loads
 from time import monotonic
 from os import getenv as e
-import db
+from ambu import db
 
 
 async def get(session: object, url: object) -> object:
