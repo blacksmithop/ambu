@@ -6,3 +6,6 @@ youtube_dl
 PyNaCl
 numpy
 lyricsgenius
+spotipy
+Pillow
+psutil

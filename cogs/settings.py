@@ -1,11 +1,11 @@
 from discord.ext import commands
 import db
-from discord import Embed, Object
+from discord import Embed
 from asyncio import TimeoutError
 
 
 class Settings(commands.Cog):
-    """Bot Settings.
+    """Bot Configuration
     """
 
     def __init__(self, bot):
@@ -22,6 +22,9 @@ class Settings(commands.Cog):
 
     @commands.command()
     async def info(self, ctx, p: int = 1):
+        """
+        Shows current server-settings for the bot
+        """
         guild = ctx.guild
         stats = self.db.getguild(id=guild.id)
         info = Embed(title=f"Settings for {guild.name}", color=0xF58413)
@@ -69,7 +72,7 @@ class Settings(commands.Cog):
             info.set_footer(text=f"Page {page + 1}/5")
             return info
 
-        msg = await ctx.send(embed=p2e(page=p-1))
+        msg = await ctx.send(embed=p2e(page=p - 1))
         for e in t:
             await msg.add_reaction(e)
 
@@ -104,6 +107,10 @@ class Settings(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def filter(self, ctx, key: str, value: str):
+        """
+        Sets the filters for the bot
+        ?set filter True/False
+        """
         if key and value in ['True', 'False']:
             if self.db.setfilter(id=ctx.guild.id, key=key, value=value):
                 await ctx.send(embed=Embed(description=f"Set `{key}` filter to `{value}`"))
@@ -111,6 +118,10 @@ class Settings(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def channel(self, ctx, key: str, v1: str, *, v2: str = None):
+        """
+        Configures channel settings (check the detailed help)
+        ?channel name setting result
+        """
         if not v2:
             v2 = v1
             v1 = "channel"
@@ -123,11 +134,25 @@ class Settings(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def role(self, ctx, key: str, *, value: str):
+        """
+        Configures Role settings (check the detailed help)
+        ?role type name
+        """
         if key and value:
             if '&' not in value:
                 return
             if self.db.setrole(id=ctx.guild.id, key=key, value=value):
                 await ctx.send(embed=Embed(description=f"Set `{key}` role to {value}"))
+
+    @commands.command()
+    async def prefix(self, ctx, new_prefix: str = None):
+        if not new_prefix:
+            return await ctx.send(embed=Embed(title=f"Prefix for {ctx.guild.name}",
+                                              description=self.db.getprefix(id=ctx.guild.id) or '?'))
+        if self.db.setprefix(id=ctx.guild.id, new_prefix=new_prefix):
+            return await ctx.send(embed=Embed(title=f"Prefix for {ctx.guild.name}",
+                                              description=f"Set to {self.db.getprefix(id=ctx.guild.id)}"))
+
 
 def setup(bot):
     bot.add_cog(Settings(bot))

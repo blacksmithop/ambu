@@ -7,7 +7,7 @@ from numpy import ones
 
 
 class Game(commands.Cog):
-    """Error handling.
+    """Play games
     """
 
     def __init__(self, bot):
@@ -19,6 +19,10 @@ class Game(commands.Cog):
 
     @commands.command()
     async def okp(self, ctx):
+        """
+        Play a game of Oramma Kadayil Poyi
+        ?okp
+        """
         members = set()
         oram = Embed(title="💃 Oramma Kadayil Poyi 🌊", color=0xf79100, description="React to join the game 🐟")
         m = await ctx.send(embed=oram)
@@ -29,7 +33,7 @@ class Game(commands.Cog):
 
         while True:
             try:
-                await self.bot.wait_for(event="reaction_add", timeout=5, check=check)
+                await self.bot.wait_for(event="reaction_add", timeout=20, check=check)
             except TimeoutError:
                 break
         msg = await ctx.channel.fetch_message(id=m.id)
@@ -91,7 +95,7 @@ class Game(commands.Cog):
                 return m.author == members[rp]
 
             try:
-                msg = await self.bot.wait_for('message', check=getcolor, timeout=5)
+                msg = await self.bot.wait_for('message', check=getcolor, timeout=10)
                 if msg.content not in colors:
                     colors.append(msg.content)
             except TimeoutError:

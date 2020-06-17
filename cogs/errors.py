@@ -50,9 +50,6 @@ class Errors(commands.Cog):
             return await ctx.send(embed=msg)
         if isinstance(error, TimeoutError):
             return
-        else:
-            print(error)
-
 
 
 def setup(bot):

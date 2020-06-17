@@ -6,7 +6,7 @@ from aiohttp import ClientSession
 from json import loads
 from time import monotonic
 from os import getenv as e
-from ambu import db
+import db
 
 
 async def get(session: object, url: object) -> object:
@@ -30,10 +30,13 @@ class Image(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.db = db.BotConfig()
-        self.keys = None
 
     @commands.command()
     async def ping(self, ctx):
+        """
+        Ping the bot
+        ?ping
+        """
         before = monotonic()
         await ctx.trigger_typing()
         after = monotonic()
@@ -43,6 +46,10 @@ class Image(commands.Cog):
 
     @commands.command()
     async def fox(self, ctx):
+        """
+        Get random fox images
+        ?fox
+        """
         url = f"https://randomfox.ca/images/{r(1, 122)}.jpg"
         await ctx.send(embed=Embed(
             title="🦊", timestamp=dt.now(), url=url
@@ -50,6 +57,10 @@ class Image(commands.Cog):
 
     @commands.command()
     async def dog(self, ctx):
+        """
+        Get random dog images
+        ?dog
+        """
         async with ClientSession() as session:
             url = await get(session, 'https://dog.ceo/api/breeds/image/random')
             url = loads(url)['message']
@@ -59,6 +70,10 @@ class Image(commands.Cog):
 
     @commands.command()
     async def cat(self, ctx):
+        """
+        Get random cat images
+        ?cat
+        """
         async with ClientSession() as session:
             url = await get(session, 'https://api.thecatapi.com/v1/images/search')
             url = loads(url)[0]['url']
@@ -68,6 +83,10 @@ class Image(commands.Cog):
 
     @commands.command()
     async def nature(self, ctx):
+        """
+        Get random nature images
+        ?nature
+        """
         async with ClientSession() as session:
             url = await fetch(session, 'https://www.reddit.com/r/earthporn/new.json?sort=hot&limit=40')
         await ctx.send(embed=Embed(
@@ -75,33 +94,23 @@ class Image(commands.Cog):
         ).set_image(url=url['url']))
 
     @commands.command()
-    @commands.is_nsfw()
-    async def porn(self, ctx):
-        subs = ['NSFW_GIF', 'adorableporn', 'porn', 'nsfw', 'nsfw_gifs']
-        subs = c(subs)
-        async with ClientSession() as session:
-            url = await fetch(session, f"https://www.reddit.com/r/{subs}/new.json?sort={c(['hot', 'top'])}&limit=30")
-            url = loads(url)
-        url = url['data']['children']
-        url = c(url)['data']
-
-        if not url['url'].endswith(('.jpg', '.gify', '.gif')):
-            await ctx.send(url['url'])
-            return
-        await ctx.send(embed=Embed(
-            title="👙", timestamp=dt.now(), url=f"https://reddit.com/{url['permalink']}"
-        ).set_image(url=url['url']))
-
-    @commands.command()
     async def pics(self, ctx):
+        """
+        Get random images
+        ?pics
+        """
         async with ClientSession() as session:
             url = await fetch(session, 'https://www.reddit.com/r/pic/new.json?sort=hot&limit=40')
             await ctx.send(embed=Embed(
                 title="🏕", timestamp=dt.now(), url=f"https://reddit.com/{url['permalink']}"
             ).set_image(url=url['url']))
 
-    @commands.command()
+    @commands.command(name='astro', aliases=['space'])
     async def astro(self, ctx):
+        """
+        Get random astronomy images
+        ?astro
+        """
         async with ClientSession() as session:
             url = await fetch(session, 'https://www.reddit.com/r/astrophotography/new.json?sort=hot&limit=40')
             await ctx.send(embed=Embed(
@@ -109,17 +118,12 @@ class Image(commands.Cog):
             ).set_image(url=url['url']))
 
     @commands.command()
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def snap(self, ctx, url):
-        base = "https://image.thum.io/get/width/600/crop/600/"
-        if 'https://' not in url:
-            url = f"https://{url}"
-        link = f"{base}{url}"
-        await ctx.send(embed=Embed().set_image(url=link))
-
-    @commands.command()
     @commands.cooldown(1, 5)
     async def image(self, ctx):
+        """
+        Get random images
+        ?image
+        """
         base = "https://api.unsplash.com/photos/random/?client_id="
         client = e("unsp_acc").split(';')
         link = f"{base}{c(client)}"
@@ -128,6 +132,7 @@ class Image(commands.Cog):
             url = loads(url)['urls']['regular']
             await ctx.send(embed=Embed().set_image(url=url))
             await self.bot.wait_for("reaction_add")
+
 
 def setup(bot):
     bot.add_cog(Image(bot))

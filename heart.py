@@ -6,6 +6,7 @@ from discord.errors import LoginFailure
 from discord.ext.commands.errors import ExtensionFailed
 from db import BotConfig
 from discord import Game, Status
+from datetime import datetime
 
 db = BotConfig()
 basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=ERROR)
@@ -34,6 +35,7 @@ async def count():
 @bot.event
 async def on_ready():
     print(f"Logged in as: {bot.user.display_name}")
+    bot.uptime = datetime.utcnow()
     for cog in l("cogs"):
         if ".py" in cog:
             cog = cog.replace(".py", "")
@@ -45,7 +47,7 @@ async def on_ready():
     count.start()
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def unload(ctx, cog):
     """Unloads a Cog"""
     if not await bot.is_owner(ctx.author):
@@ -57,7 +59,7 @@ async def unload(ctx, cog):
         await ctx.send(embed=Embed(title=f"Unloaded Cog: {cog}", color=0xEA0E0E))
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def reload(ctx, cog):
     """Reloads a Cog"""
     if not await bot.is_owner(ctx.author):
@@ -72,7 +74,7 @@ async def reload(ctx, cog):
         ))
 
 
-@bot.command()
+@bot.command(hidden=True)
 async def load(ctx, cogout):
     """Loads a Cog"""
     if not await bot.is_owner(ctx.author):

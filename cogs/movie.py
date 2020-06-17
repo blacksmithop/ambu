@@ -11,7 +11,7 @@ async def get(session: object, url: object) -> object:
 
 
 class Movie(commands.Cog):
-    """Error handling.
+    """Lookup movies/Series
     """
 
     def __init__(self, bot):
@@ -19,6 +19,9 @@ class Movie(commands.Cog):
 
     @commands.command(name="movie", aliases=['mov', 'm'])
     async def _movie(self, ctx, *, title):
+        """Search for a Movie/Series
+        ?mov name
+        """
         async with ClientSession() as session:
             url = f"http://www.omdbapi.com/?t={'+'.join(title.split())}&apikey={e('omdb')}"
             url = await get(session, url)

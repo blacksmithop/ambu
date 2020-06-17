@@ -2,13 +2,12 @@ from discord.ext import commands
 from discord import Embed, Member
 from discord.utils import get
 import db
-from pickle import loads as l
 from re import sub
 from asyncio import sleep
 
 
 class Admin(commands.Cog):
-    """Handles the bot's configuration system.
+    """Admin Commands
     """
 
     def __init__(self, bot):
@@ -23,36 +22,12 @@ class Admin(commands.Cog):
     def rid(self, id: int):
         return int(sub("[<@&>]", '', id))
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        channel = self.db.getchannel(id=member.guild.id, channel="welcome")
-        if not channel['channel']:
-            return
-        cnl = get(member.guild.channels, id=self.pid(channel['channel']))
-        if not channel['message']:
-            channel['message'] = "Welcome {member] to {server}"
-        if not channel['information']:
-            channel['infromation'] = "Follow the rules and have a good time!"
-        await cnl.send(embed=Embed(
-            title=channel["message"].format(member=member.display_name, server=member.guild.name), color=0x8722EB,
-            description=channel["information"]
-        ).set_author(icon_url=member.avatar_url, name=member.display_name))
-
-    @commands.Cog.listener()
-    async def on_member_remove(self, member):
-        channel = self.db.getchannel(id=member.guild.id, channel="leave")
-        if not channel['channel']:
-            return
-        cnl = get(member.guild.channels, id=self.pid(channel['channel']))
-        if not channel['message']:
-            channel['message'] = "Bye {member}"
-        await cnl.send(embed=Embed(
-            title=channel["message"].format(member=member.display_name), color=0x8722EB
-        ).set_author(icon_url=member.avatar_url, name=member.display_name))
-
     @commands.command()
     async def cogs(self, ctx):
-        """Shows loaded Cogs"""
+        """
+        Shows loaded Cogs
+        ?cogs
+        """
         if ctx.invoked_subcommand is None:
             coglist = self.bot.cogs
             cogdir = ""
@@ -67,6 +42,10 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.has_role("Joined")
     async def accept(self, ctx):
+        """
+        Accept rules and access rest of the Server
+        ?accept
+        """
         channel = self.db.getchannel(id=ctx.author.guild.id, channel="verify")
         if not channel['channel']:
             return
@@ -82,8 +61,11 @@ class Admin(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_roles=True)
     async def mute(self, ctx, member: Member,
-                   num: int, unit: str):
-        """Mutes a member"""
+                   num: int):
+        """
+        Mutes a member
+        ?mute member time (in hours)
+        """
         if self.bot.user == member or member == ctx.author:
             return
         muted_role = self.db.getrole(id=ctx.author.guild.id, role="muted")
@@ -112,7 +94,10 @@ class Admin(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def unmute(self, ctx, member: Member):
-        """Unmutes a member"""
+        """
+        Unmutes a member
+        ?unmute member
+        """
         muted_role = self.db.getrole(id=ctx.author.guild.id, role="muted")
         muted_role = get(ctx.author.guild.roles, id=self.rid(id=muted_role))
         if not muted_role:
@@ -127,7 +112,12 @@ class Admin(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.has_permissions(manage_messages=True)
     async def purge(self, ctx, limit: int = 5, member: Member = None):
-        """Deleted messages"""
+        """
+        Deleted messages
+        ?purge amount
+        for purge by user
+        ?purge amount member
+        """
         if member:
             def is_me(m):
                 return m.author == member
@@ -138,16 +128,19 @@ class Admin(commands.Cog):
 
     @commands.command(name='selfrole', aliases=['sr', 'dis'])
     async def selfrole(self, ctx, role: str = None):
+        """
+        Get a self role
+        ?sr name
+        """
         member = ctx.author
-        s_roles = self.db.getrole(id=ctx.guild.id, role='self')
+
         role = get(ctx.guild.roles, name=role)
-        s_roles = set(s_roles.split(','))
-        s_roles = [get(ctx.guild.roles, id=self.rid(r)) for r in s_roles]
-        print(s_roles)
-        print(role)
+        s_roles = ['KSD', 'KNR', 'WYD', 'KZK', 'PKD', 'TSR', 'EKM', 'IDK', 'KTM', 'ALP', 'MLP', 'PTA', 'KLM', 'TVM']
+        s_roles = [get(ctx.guild.roles, name=r) for r in s_roles]
+
         r_act = Embed(color=0x4287f5)
         if role is None or role not in s_roles:
-            r_act.title = f"Selfroles for {ctx.guild.name}"
+            r_act.title = f"Self-roles for {ctx.guild.name}"
             r_act.description = ' '.join([r.name for r in s_roles])
             await ctx.send(embed=r_act)
             return

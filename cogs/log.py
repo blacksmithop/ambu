@@ -1,5 +1,5 @@
 from discord.ext import commands
-from discord import Embed, Member, Colour, Role, Status, Guild, Object
+from discord import Embed, Member, Colour, Role, Status, Guild
 from discord.utils import get
 from datetime import datetime as dt
 from db import BotConfig
@@ -22,6 +22,33 @@ class Log(commands.Cog):
 
     def pid(self, id: int):
         return int(sub("[<#>]", '', id))
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        channel = self.db.getchannel(id=member.guild.id, channel="welcome")
+        if not channel['channel']:
+            return
+        cnl = get(member.guild.channels, id=self.pid(channel['channel']))
+        if not channel['message']:
+            channel['message'] = "Welcome {member] to {server}"
+        if not channel['information']:
+            channel['infromation'] = "Follow the rules and have a good time!"
+        await cnl.send(embed=Embed(
+            title=channel["message"].format(member=member.display_name, server=member.guild.name), color=0x8722EB,
+            description=channel["information"]
+        ).set_author(icon_url=member.avatar_url, name=member.display_name))
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        channel = self.db.getchannel(id=member.guild.id, channel="leave")
+        if not channel['channel']:
+            return
+        cnl = get(member.guild.channels, id=self.pid(channel['channel']))
+        if not channel['message']:
+            channel['message'] = "Bye {member}"
+        await cnl.send(embed=Embed(
+            title=channel["message"].format(member=member.display_name), color=0x8722EB
+        ).set_author(icon_url=member.avatar_url, name=member.display_name))
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
@@ -139,6 +166,12 @@ class Log(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True, manage_messages=True)
     async def revoke(self, ctx, member: Member = None):
+        """
+        Revoke invites
+        ?revoke
+        or to revoke for a member
+        ?revoke member
+        """
         if member:
             for invite in await ctx.guild.invites():
                 if invite.inviter == member:
@@ -154,6 +187,10 @@ class Log(commands.Cog):
     @commands.group(invoke_without_command=True)
     @commands.has_permissions(manage_roles=True)
     async def color(self, ctx, name: str, code: str = None):
+        """
+        Create a color role
+        ?color name Hex
+        """
         if ctx.invoked_subcommand is None:
             if code is None:
                 await ctx.send(embed=Embed(
@@ -180,6 +217,10 @@ class Log(commands.Cog):
 
     @color.group(invoke_without_command=True)
     async def add(self, ctx, member: Member, role: Role):
+        """
+        Adds a color role
+        ?color add member name
+        """
         await member.add_roles(role)
         await ctx.message.add_reaction(self.tick)
         await ctx.send(embed=Embed(
@@ -188,6 +229,10 @@ class Log(commands.Cog):
 
     @color.group(invoke_without_command=True)
     async def remove(self, ctx, member: Member, role: Role):
+        """
+        Removes a color role
+        ?color remove member name
+        """
         await member.remove_roles(role)
         await ctx.message.add_reaction(self.tick)
         await ctx.send(embed=Embed(
@@ -197,6 +242,10 @@ class Log(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def stats(self, ctx):
+        """
+        Shows the stats for a Server
+        ?stats
+        """
         guild: Guild = ctx.guild
         member: Member
         bots, humans, online, idle, dnd, offline = 0, 0, 0, 0, 0, 0
