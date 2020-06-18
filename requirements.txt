@@ -9,3 +9,5 @@ lyricsgenius
 spotipy
 Pillow
 psutil
+jinja2
+aiohttp-jinja2
