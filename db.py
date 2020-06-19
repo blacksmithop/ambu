@@ -149,3 +149,19 @@ class BotConfig:
     def fetch(self, name: str):
         em = self.r.get(name)
         return l(em)
+
+    def createuser(self, uid: int):
+        return self.r.set(uid, 0)
+
+    def getuser(self, uid: int):
+        if not self.r.exists(uid):
+            self.createuser(uid=uid)
+        bal = self.r.get(uid)
+        return int(bal.decode('utf-8'))
+
+    def transact(self, uid: int, amt: int):
+        if not self.r.exists(uid):
+            self.createuser(uid=uid)
+        bal = self.r.get(uid)
+        bal = int(bal.decode('utf-8')) + amt
+        return self.r.set(uid, bal)
