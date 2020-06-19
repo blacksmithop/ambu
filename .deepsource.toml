@@ -1,0 +1,7 @@
+[[analyzers]]
+name = "python"
+enabled = true
+dependency_file_paths = [
+  "requirements.txt"
+]
+version = 1
