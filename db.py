@@ -71,7 +71,7 @@ class BotConfig:
         return guild
 
     def str2bool(self, flag: str):
-        return True if flag is 'True' else False
+        return True if flag == 'True' else False
 
     def getchannel(self, id: int, channel: str = None):
         guild = self.getguild(id=id)
