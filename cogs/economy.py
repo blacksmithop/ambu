@@ -58,24 +58,30 @@ class Economy(commands.Cog):
         if member.status is Status.offline:
             return await ctx.send(embed=user)
         act = member.activities
-        if act[0]:
-            try:
-                user.add_field(name="Activity 🍞", value=f"{act[0].emoji.name or ''} {act[0].name}", inline=True)
-            except:
-                user.add_field(name="Spotify 🎶", value=f"{act[0].title} by {act[0].artist}", inline=True)
-        if act[1]:
-            try:
-                user.add_field(name="Spotify 🎶", value=f"{act[1].title} by {act[1].artist}", inline=True)
-            except:
+        try:
+            if act[0]:
                 try:
-                    user.add_field(name="Custom 😎", value=f"{act[1].name}, {act[1].details}", inline=True)
-                    if act[2]:
-                        try:
-                            user.add_field(name="Spotify 🎶", value=f"{act[2].title} by {act[2].artist}", inline=True)
-                        except:
-                            pass
+                    user.add_field(name="Activity 🍞", value=f"{act[0].emoji.name or ''} {act[0].name}", inline=True)
                 except:
-                    pass
+                    user.add_field(name="Spotify 🎶", value=f"{act[0].title} by {act[0].artist}", inline=True)
+        except:
+            pass
+        try:
+            if act[1]:
+                try:
+                    user.add_field(name="Spotify 🎶", value=f"{act[1].title} by {act[1].artist}", inline=True)
+                except:
+                    try:
+                        user.add_field(name="Custom 😎", value=f"{act[1].name}, {act[1].details}", inline=True)
+                        if act[2]:
+                            try:
+                                user.add_field(name="Spotify 🎶", value=f"{act[2].title} by {act[2].artist}", inline=True)
+                            except:
+                                pass
+                    except:
+                        pass
+        except:
+            pass
         await ctx.send(embed=user)
 
 
