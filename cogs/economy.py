@@ -1,7 +1,16 @@
 from discord.ext import commands
-from discord import Embed, Member, Status
+from discord import Embed, Member, Status, Color
 import db
 from discord.utils import get
+from aiohttp import ClientSession
+from ast import literal_eval as l
+from random import shuffle, randrange
+from asyncio import TimeoutError
+
+
+async def fetch(session: object, url: object) -> object:
+    async with session.get(url) as response:
+        return await response.text()
 
 
 class Economy(commands.Cog):
@@ -18,7 +27,12 @@ class Economy(commands.Cog):
         self.dnd = get(self.guild.emojis, name="dnd")
 
     @commands.command(name='balance', aliases=['bank', 'bal'])
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def balance(self, ctx, member: Member = None):
+        """
+        Shows user balance
+        ?bal
+        """
         if member is None:
             member = ctx.author
         user = Embed(color=0x857272)
@@ -31,7 +45,10 @@ class Economy(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def user(self, ctx, member: Member = None):
-
+        """
+        Shows user balance information
+        ?user member
+        """
         if member is None:
             member = ctx.author
 
@@ -75,7 +92,8 @@ class Economy(commands.Cog):
                         user.add_field(name="Custom 😎", value=f"{act[1].name}, {act[1].details}", inline=True)
                         if act[2]:
                             try:
-                                user.add_field(name="Spotify 🎶", value=f"{act[2].title} by {act[2].artist}", inline=True)
+                                user.add_field(name="Spotify 🎶", value=f"{act[2].title} by {act[2].artist}",
+                                               inline=True)
                             except:
                                 pass
                     except:
@@ -83,6 +101,65 @@ class Economy(commands.Cog):
         except:
             pass
         await ctx.send(embed=user)
+
+    @commands.command()
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def trivia(self, ctx):
+        url = "https://opentdb.com/api.php?amount=1&difficulty=medium&type=multiple"
+        clr = lambda: randrange(0, 255)
+        colour = Color.from_rgb(clr(), clr(), clr())
+        async with ClientSession() as session:
+            url = await fetch(session, url)
+        url = l(url)
+        quest = Embed(color=colour)
+        url = url['results'][0]
+        quest.title = f"""Q) **{url['question'].replace('&quot;', "'").replace('&#039;', "'")}**"""
+        quest.set_author(name=url['category'], icon_url="https://i.ibb.co/FztStPF/trivia-Icon.png",
+                         url="https://opentdb.com/")
+        correct = url['correct_answer']
+        answers = url['incorrect_answers']
+        answers.append(correct)
+        shuffle(answers)
+        quest.description = f"""A. {answers[0]}\n
+                            B. {answers[1]}\n
+                            C. {answers[2]}\n
+                            D. {answers[3]}
+                            """
+        mcq = await ctx.send(embed=quest)
+        reacts = ['🇦', '🇧', '🇨', '🇩']
+
+        r2a = {
+            '🇦': answers[0],
+            '🇧': answers[1],
+            '🇨': answers[2],
+            '🇩': answers[3]
+        }
+        ans = {"R": {*()}, "W": {*()}}
+        for react in reacts:
+            await mcq.add_reaction(react)
+
+        while True:
+            try:
+                reaction, user = await self.bot.wait_for('reaction_add', timeout=20.0)
+                e = str(reaction.emoji)
+            except TimeoutError:
+                break
+            if user != self.bot.user and reaction.message.id == mcq.id:
+                if r2a[e] == correct:
+                    ans["R"].add(user.id)
+                else:
+                    ans["W"].add(user.id)
+
+        des = ""
+        for right in ans["R"]:
+            if right not in ans["W"]:
+                des += f"<@{right}> won 10 🥥\n"
+        if des != "":
+            des = f"```Correct answer was {correct}```\n{des}"
+            await ctx.send(embed=Embed(description=des, color=colour))
+        else:
+            des = f"```Correct answer was {correct}```\nNo winners 😢"
+            await ctx.send(embed=Embed(description=des, color=colour))
 
 
 def setup(bot):
