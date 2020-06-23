@@ -4,7 +4,7 @@ import db
 from discord.utils import get
 from aiohttp import ClientSession
 from ast import literal_eval as l
-from random import shuffle, randrange
+from random import shuffle, randrange, choice
 from asyncio import TimeoutError
 
 
@@ -154,6 +154,7 @@ class Economy(commands.Cog):
         for right in ans["R"]:
             if right not in ans["W"]:
                 des += f"<@{right}> won 10 🥥\n"
+                self.db.transact(uid=right, amt=10)
         if des != "":
             des = f"```Correct answer was {correct}```\n{des}"
             await ctx.send(embed=Embed(description=des, color=colour))
@@ -161,6 +162,19 @@ class Economy(commands.Cog):
             des = f"```Correct answer was {correct}```\nNo winners 😢"
             await ctx.send(embed=Embed(description=des, color=colour))
 
+    @commands.command()
+    async def coin(self, ctx, bet: int = 1):
+        clr = lambda: randrange(0, 255)
+        colour = Color.from_rgb(clr(), clr(), clr())
+        result = choice([True, False])
+        id = ctx.author.id
+        if result:
+            self.db.transact(uid=id, amt=bet)
+        else:
+            self.db.transact(uid=id, amt=-bet)
+        result = "won" if result else "lost"
+        return await ctx.send(embed=Embed(title="Coin Flip!",
+                    description=f"{ctx.author.mention} {result} {bet} 🥥"))
 
 def setup(bot):
     bot.add_cog(Economy(bot))
