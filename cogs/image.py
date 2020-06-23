@@ -5,7 +5,6 @@ from datetime import datetime as dt
 from aiohttp import ClientSession
 from json import loads
 from time import monotonic
-from os import getenv as e
 import db
 
 
@@ -117,21 +116,6 @@ class Image(commands.Cog):
                 title="🏕", timestamp=dt.now(), url=f"https://reddit.com/{url['permalink']}"
             ).set_image(url=url['url']))
 
-    @commands.command()
-    @commands.cooldown(1, 5)
-    async def image(self, ctx):
-        """
-        Get random images
-        ?image
-        """
-        base = "https://api.unsplash.com/photos/random/?client_id="
-        client = e("unsp_acc").split(';')
-        link = f"{base}{c(client)}"
-        async with ClientSession() as session:
-            url = await get(session, link)
-            url = loads(url)['urls']['regular']
-            await ctx.send(embed=Embed().set_image(url=url))
-            await self.bot.wait_for("reaction_add")
 
 
 def setup(bot):
