@@ -13,9 +13,7 @@ class Errors(commands.Cog):
     async def on_command_error(self, ctx, error):
         msg = Embed(color=0x0EEA7C)
         if isinstance(error, commands.errors.CommandNotFound):
-            msg.title = "Command not found"
-            msg.description = error.args[0]
-            return await ctx.send(embed=msg)
+            return
         if isinstance(error, commands.errors.MissingRequiredArgument):
             msg.title = "Missing Argument ➖"
             msg.description = error.args[0]
@@ -50,6 +48,8 @@ class Errors(commands.Cog):
             return await ctx.send(embed=msg)
         if isinstance(error, TimeoutError):
             return
+        else:
+            print(error)
 
 
 def setup(bot):
