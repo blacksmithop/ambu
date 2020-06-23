@@ -1,7 +1,12 @@
-from discord import Embed, Color
 from discord.ext import commands
-from db import BotConfig
+from discord import Embed, Color
+import db
 from discord.utils import get
+from aiohttp import ClientSession
+
+
+def setup(bot):
+    bot.add_cog(Help(bot))
 
 
 class Help(commands.Cog):
@@ -11,7 +16,7 @@ class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         bot.remove_command("help")
-        self.db = BotConfig()
+        self.db = db.BotConfig()
         self.guild = self.bot.get_guild(self.db.fetch(name="emote"))
         self.tick = get(self.guild.emojis, name="loading")
         self.client = get(self.guild.emojis, name="client")
@@ -20,65 +25,68 @@ class Help(commands.Cog):
         self.exec = get(self.guild.emojis, name="dev")
         self.pin = get(self.guild.emojis, name="pin")
 
-    @commands.command(pass_context=True)
-    async def help(self, ctx, *cog):
-        """
-        Shows the Help Command
-        """
-        p = self.db.getprefix(id=ctx.guild.id) or '?'
-        try:
-            if not cog:
-                info = Embed(title='Cogs',
-                             description=f'Use {p}help cog for more', color=Color.blue())
-                info.set_footer(text="🧡", icon_url=ctx.author.avatar_url)
-                info.timestamp = ctx.message.created_at
-                info.set_author(name=self.bot.user.display_name,
-                                url="https://blacksmithop.github.io/",
-                                icon_url=self.bot.user.avatar_url)
-                cogs = {"🛠 Admin": "Commands for admins",
-                        "📷 Image": "Image commands",
-                        "🎶 Music": "Music commands",
-                        "🧾 Log": "Logging",
-                        f"{self.wumpus} Settings ": "Bot settings",
-                        "🎞 Movie": "Search for movies",
-                        f"{self.pin} Poll": "Run a poll",
-                        f"{self.exec} Game": "Play games",
-                        }
-                for cog in cogs:
-                    info.add_field(name=f"**{cog}**", value=f"`{cogs[cog]}`", inline=True)
+    @commands.group(pass_context=True)
+    async def help(self, ctx, cog: str = None):
+        p = self.db.getprefix(id=ctx.guild.id)
+        if cog is None:
+            info = Embed(title='Cogs',
+                         description=f'Use {p}help cog for more', color=Color.blue())
+            info.set_footer(text="🧡", icon_url=ctx.author.avatar_url)
+            info.timestamp = ctx.message.created_at
+            info.set_author(name=self.bot.user.display_name,
+                            url="https://blacksmithop.github.io/",
+                            icon_url=self.bot.user.avatar_url)
+            cogs = {"🎶 Music": "Music commands",
+                    "📷 Fun": "Fun commands",
+                    "💸 Economy": "Economy commands",
+                    "🛠 Admin": "Commands for admins",
+                    f"{self.wumpus} Settings ": "Bot settings",
+                    f"{self.exec} Game": "Play games",
+                    "🔞 NSFW": "NSFW commands",
+                    f"{self.pin} Misc": "Other commands",
+                    "🔍 Search": "Commands to search"
+                    }
+            for cog in cogs:
+                info.add_field(name=cog, value=f'```{cogs[cog]}```')
+            return await ctx.send(embed=info)
 
-                await ctx.message.add_reaction(emoji='✅')
-                await ctx.send('', embed=info)
-            else:
-                if len(cog) > 1:
-                    info = Embed(title=self.bugs,
-                                 description='Try the [Detailed Help](https://blacksmithop.github.io/)',
-                                 color=Color.green())
-                    await ctx.message.add_reaction(emoji='✅')
-                    await ctx.send('', embed=info)
-                else:
-                    found = False
-                    for x in self.bot.cogs:
-                        for y in cog:
-                            if x == y:
-                                info = Embed(title=f'{cog[0]} Commands',
-                                             description=self.bot.cogs[cog[0]].__doc__,
-                                             color=Color.blurple())
-                                for c in self.bot.get_cog(y).get_commands():
-                                    if not c.hidden:
-                                        info.add_field(name=c.name, value=c.help, inline=False)
-                                found = True
-                    if not found:
-                        info = Embed(title=f'Cog `{cog[0]}` not found {self.bugs}',
-                                     description='Try the [Detailed Help](https://blacksmithop.github.io/)',
-                                     color=Color.red())
-                    else:
-                        await ctx.message.add_reaction(emoji='✅')
-                    await ctx.send('', embed=info)
-        except:
-            await ctx.message.add_reaction(emoji='⛔')
-            await ctx.send("Missing permission to send Embeds")
-
-
-def setup(bot):
-    bot.add_cog(Help(bot))
+        curl = "https://api.npoint.io/c7a2bdd082187ec66f78/"
+        async with ClientSession() as session:
+            resp = await session.get(url=f"{curl}/cogs")
+            cogs = await resp.json()
+        if cog in cogs:
+            cog2cmd = Embed(title=cog,
+                            description=f'Use {p}help command for more', color=Color.blue())
+            cog2cmd.set_footer(text="🧡", icon_url=ctx.author.avatar_url)
+            cog2cmd.timestamp = ctx.message.created_at
+            cog2cmd.set_author(name=self.bot.user.display_name,
+                               url="https://blacksmithop.github.io/",
+                               icon_url=self.bot.user.avatar_url)
+            async with ClientSession() as session:
+                resp = await session.get(url=f"{curl}/{cog}")
+                cogs = await resp.json()
+            des = ', '.join(cogs)
+            cog2cmd.description = f"```{des}```"
+            return await ctx.send(embed=cog2cmd)
+        curl = "https://api.npoint.io/bd2c4881984200163a6c"
+        async with ClientSession() as session:
+            resp = await session.get(url=f"{curl}/{cog}")
+            subcmd = await resp.json()
+        if subcmd:
+            subc = Embed(title=cog,
+                         description=f'Use {p}help command for more', color=Color.blue())
+            subc.set_footer(text="🧡", icon_url=ctx.author.avatar_url)
+            subc.timestamp = ctx.message.created_at
+            subc.set_author(name=self.bot.user.display_name,
+                            url="https://blacksmithop.github.io/",
+                            icon_url=self.bot.user.avatar_url)
+            subc.add_field(name="Description", value=f"```{subcmd['des']}```")
+            subc.add_field(name="Use", value=f"```{subcmd['use'].format(p=p)}```")
+            subc.add_field(name="Permission", value=f"`{subcmd['perm']}`")
+            subc.add_field(name="Alias", value=f"`{subcmd['alias']}`")
+            subc.add_field(name="Cooldown", value=f"`{subcmd['cd']}`")
+            return await ctx.send(embed=subc)
+        else:
+            return await ctx.send(embed=Embed(title=f'`{cog}` was not found {self.bugs}',
+                                              description='[All Commands](https://blacksmithop.github.io/)',
+                                              color=Color.red()))
