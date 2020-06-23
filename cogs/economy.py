@@ -176,5 +176,14 @@ class Economy(commands.Cog):
         return await ctx.send(embed=Embed(title="Coin Flip!",
                     description=f"{ctx.author.mention} {result} {bet} 🥥"))
 
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        self.db.createuser(uid=member.id)
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member):
+        self.db.r.delete(member.id)
+
+
 def setup(bot):
     bot.add_cog(Economy(bot))
