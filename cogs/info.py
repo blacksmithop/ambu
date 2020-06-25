@@ -37,9 +37,6 @@ class Info(commands.Cog):
         up.add_field(name="Uptime", value=time_up, inline=True)
         up.add_field(name="Platform", value=platform.system(), inline=True)
         up.add_field(name="Architecture", value=platform.machine(), inline=True)
-        up.add_field(name="RAM",
-                     value=str(round(psutil.virtual_memory().total / (1024.0 ** 3))) + " GB",
-                     inline=True)
         up.add_field(name="discord.py", value=__version__, inline=True)
         process = psutil.Process(getpid())
         usage = process.memory_info().rss
