@@ -120,11 +120,7 @@ class Economy(commands.Cog):
         answers = url['incorrect_answers']
         answers.append(correct)
         shuffle(answers)
-        quest.description = f"""A. {answers[0]}\n
-                            B. {answers[1]}\n
-                            C. {answers[2]}\n
-                            D. {answers[3]}
-                            """
+        quest.description = f"A. {answers[0]}\nB. {answers[1]}\nC. {answers[2]}\nD. {answers[3]}"
         mcq = await ctx.send(embed=quest)
         reacts = ['🇦', '🇧', '🇨', '🇩']
 
@@ -174,7 +170,7 @@ class Economy(commands.Cog):
             self.db.transact(uid=id, amt=-bet)
         result = "won" if result else "lost"
         return await ctx.send(embed=Embed(title="Coin Flip!",
-                    description=f"{ctx.author.mention} {result} {bet} 🥥"))
+                                          description=f"{ctx.author.mention} {result} {bet} 🥥"))
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
