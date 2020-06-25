@@ -10,3 +10,5 @@ spotipy
 Pillow
 psutil
 Wikipedia-API
+cryptography
+beem
