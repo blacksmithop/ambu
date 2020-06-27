@@ -121,21 +121,48 @@ class Rates(commands.Cog):
         pip.add_field(name="About", value=f"```{about}```")
 
         link = ""
-        if data['requires_dist']:
+        if 'requires_dist' in data:
             print(data['requires_dist'])
             dep = '\n'.join(data['requires_dist'])
             pip.add_field(name="Dependency ✅", value=f"```{dep}```")
 
-        if res['Documentation']:
+        if 'Documentation' in res:
             link += f"[Documentation]({res['Documentation']})\n"
-        if res['Homepage']:
+        if 'Homepage' in res:
             link += f"[Homepage]({res['Homepage']})"
         if link != "":
             pip.add_field(name="Links 🌐", value=link)
 
         return await ctx.send(embed=pip)
 
+    @commands.command(name='github', aliases=['gh'])
+    async def github(self, ctx, user: str, package: str = None):
+        base = f"https://api.github.com/users/{user}/repos"
+        async with ClientSession() as session:
+            data = await get(session, base)
+        data = loads(data)
+        if 'message' in data:
+            return await ctx.send(f"Could not find the user `{user}`")
+        gh = Embed(color=Color.greyple())
+        if package:
+            d = None
+            for i in data:
+                if i['name'] == package:
+                    d = i
+                    break
+            if d is None:
+                return await ctx.send(f"Could not find the repository `{package}` under `{user}`")
+            d: dict()
+            gh.set_author(name=d["owner"]["login"], url=d['html_url'], icon_url="https://i.ibb.co/k9HjpJn/gh.png")
+            gh.set_thumbnail(url=d['owner']['avatar_url'])
+            gh.add_field(name="**Description**", value=d['description'])
+            gh.add_field(name="**Created**", value=d['created_at'][:9])
+            gh.add_field(name="**Updated**", value=d['updated_at'][:9])
+            gh.add_field(name="**Stars** ⭐", value=d['stargazers_count'])
+            gh.add_field(name="**Language**", value=d['language'])
+            gh.add_field(name="**Forks** 🍴", value=d['forks'])
+            return await ctx.send(embed=gh)
+
 
 def setup(bot):
     bot.add_cog(Rates(bot))
-    
