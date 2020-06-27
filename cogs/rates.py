@@ -5,6 +5,7 @@ from ast import literal_eval
 from random import randrange
 from json import loads
 from urllib.request import urlopen
+import aionewton
 
 
 async def get(session: object, url: object) -> object:
@@ -95,7 +96,46 @@ class Rates(commands.Cog):
         ad.title = "URL Shortener 🔁"
         ad.description = tinyurl
         return await ctx.send(embed=ad)
-    
+
+    @commands.command(name='calc')
+    async def calculator(self, ctx, *, expr):
+        res = await aionewton.simplify(expr)
+        math = Embed(color=Color.blue())
+        math.set_author(name="Calculator 🔢", icon_url="https://i.ibb.co/v4GdjQd/bmo.png")
+        math.add_field(name="Expression", value=f"```{expr}```", inline=False)
+        math.add_field(name="Result", value=f"```{res}```", inline=False)
+        return await ctx.send(embed=math)
+
+    @commands.command(name='pip', aliases=['pypi'])
+    async def pypi(self, ctx, *, package):
+        base = f"https://pypi.org/pypi/{package}/json"
+        async with ClientSession() as session:
+            data = await get(session, base)
+        data = loads(data)
+        data = data['info']
+        pip = Embed(color=Color.green())
+        pip.set_author(name=data['author'], url=data['package_url'], icon_url="https://i.ibb.co/nD9H9Pt/py.jpg")
+
+        res = data['project_urls']
+        about = f"Requires 🐍: {data['requires_python']}\n{data['summary']}\nVersion: {data['version']}"
+        pip.add_field(name="About", value=f"```{about}```")
+
+        link = ""
+        if data['requires_dist']:
+            print(data['requires_dist'])
+            dep = '\n'.join(data['requires_dist'])
+            pip.add_field(name="Dependency ✅", value=f"```{dep}```")
+
+        if res['Documentation']:
+            link += f"[Documentation]({res['Documentation']})\n"
+        if res['Homepage']:
+            link += f"[Homepage]({res['Homepage']})"
+        if link != "":
+            pip.add_field(name="Links 🌐", value=link)
+
+        return await ctx.send(embed=pip)
+
 
 def setup(bot):
     bot.add_cog(Rates(bot))
+    
