@@ -12,3 +12,4 @@ psutil
 Wikipedia-API
 cryptography
 beem
+aionewton
