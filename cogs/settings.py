@@ -145,6 +145,7 @@ class Settings(commands.Cog):
                 await ctx.send(embed=Embed(description=f"Set `{key}` role to {value}"))
 
     @commands.command()
+    @commands.has_permissions(administrator=True)
     async def prefix(self, ctx, new_prefix: str = None):
         if not new_prefix:
             return await ctx.send(embed=Embed(title=f"Prefix for {ctx.guild.name}",
