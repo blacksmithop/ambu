@@ -27,7 +27,7 @@ class Help(commands.Cog):
 
     @commands.group(pass_context=True)
     async def help(self, ctx, cog: str = None):
-        p = self.db.getprefix(id=ctx.guild.id)
+        p = self.db.getprefix(id=ctx.guild.id) or '?'
         if cog is None:
             info = Embed(title='Cogs',
                          description=f'Use {p}help cog for more', color=Color.blue())
