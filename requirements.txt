@@ -13,3 +13,4 @@ Wikipedia-API
 cryptography
 beem
 aionewton
+darksky_weather
