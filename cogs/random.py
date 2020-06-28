@@ -63,6 +63,20 @@ class Random(commands.Cog):
         tail.add_field(name="Instructions", value=f"```{data['strInstructions']}```", inline=False)
         return await ctx.send(embed=tail)
 
+    @commands.command(name='so', aliases=['stack', 'stackoverflow'])
+    async def stack(self, ctx, *, query):
+        so = Embed(color=Color.dark_blue())
+        query = '+'.join(query.split())
+        base = f"https://api.stackexchange.com/2.2/search/advanced?pagesize=1&order=desc&sort=votes&q={query}&site=stackoverflow"
+        async with ClientSession() as session:
+            data = await get(session, base)
+        data = loads(data)
+        so.set_thumbnail(url="https://i.ibb.co/X4DWhts/so.png")
+        data = data['items'][0]
+        so.set_footer(text=f"Tags: {','.join(data['tags'])}")
+        so.set_author(name=data['title'], url=data['link'], icon_url=data['owner']['profile_image'])
+        so.description = f"Score: {data['score']}\nAnswers: {data['answer_count']}\nBy [{data['owner']['display_name']}]({data['owner']['link']})"
+        return await ctx.send(embed=so)
 
 
 def setup(bot):
