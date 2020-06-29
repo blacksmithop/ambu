@@ -78,6 +78,21 @@ class Random(commands.Cog):
         so.description = f"Score: {data['score']}\nAnswers: {data['answer_count']}\nBy [{data['owner']['display_name']}]({data['owner']['link']})"
         return await ctx.send(embed=so)
 
+    @commands.command(name='word', aliases=['dict', 'dictionary'])
+    async def word(self, ctx, *, query):
+        query = '+'.join(query.split())
+        word = Embed(color=Color.green())
+        head = {"Authorization": "Token f3159a463cde0f06b3fcb2433bcccc79f549b753"}
+        base = f"https://owlbot.info/api/v4/dictionary/{query}"
+        async with ClientSession(headers=head) as session:
+            data = await session.get(url=base, headers=head)
+            data = await data.json()
+        mean = data['definitions'][0]
+        word.set_author(name=f"{data['word']} ({data['pronunciation']})")
+        word.set_thumbnail(url=mean['image_url'])
+        word.description = f"({mean['type']}) {mean['definition']}"
+        return await ctx.send(embed=word)
+
 
 def setup(bot):
     bot.add_cog(Random(bot))
