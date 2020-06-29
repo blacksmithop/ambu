@@ -81,6 +81,19 @@ class Image(commands.Cog):
             ).set_image(url=url))
 
     @commands.command()
+    async def duck(self, ctx):
+        """
+        Get random duck images
+        ?duck
+        """
+        async with ClientSession() as session:
+            url = await get(session, 'https://random-d.uk/api/v2/random')
+            url = loads(url)['url']
+            await ctx.send(embed=Embed(
+                title="🦆", timestamp=dt.now(), url=url
+            ).set_image(url=url))
+
+    @commands.command()
     async def nature(self, ctx):
         """
         Get random nature images
