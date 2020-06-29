@@ -10,8 +10,6 @@ async def get(session: object, url: object) -> object:
     async with session.get(url) as response:
         return await response.text()
 
-webhook = "https://ptb.discordapp.com/api/webhooks/727170137458868295/iBlEkK0oxegk4teNZeynNBsBTzH" \
-          "-WtHSNCSYmLHvGL7HE5T_fIfZjmUSnBzivIkPNlMo "
 
 class Feed(commands.Cog):
     """News feed
@@ -45,6 +43,7 @@ class Feed(commands.Cog):
         post.add_field(name="Comments 📜", value=data['num_comments'])
         post.add_field(name="Score 💹", value=data['score'])
         self.bot.prev_post = data['author_fullname']
+        webhook = "https://ptb.discordapp.com/api/webhooks/727170137458868295/iBlEkK0oxegk4teNZeynNBsBTzH-WtHSNCSYmLHvGL7HE5T_fIfZjmUSnBzivIkPNlMo"
         async with ClientSession() as session:
             webhook = Webhook.from_url(webhook, adapter=AsyncWebhookAdapter(session))
             await webhook.send(embed=post, username='r/Kerala Feed')
