@@ -89,9 +89,21 @@ class Random(commands.Cog):
             data = await data.json()
         mean = data['definitions'][0]
         word.set_author(name=f"{data['word']} ({data['pronunciation']})")
-        word.set_thumbnail(url=mean['image_url'])
+        if mean['image_url'] is not None:
+            word.set_thumbnail(url=mean['image_url'])
         word.description = f"({mean['type']}) {mean['definition']}"
         return await ctx.send(embed=word)
+
+    @commands.command(name='joke')
+    async def joke(self, ctx):
+        base = "https://sv443.net/jokeapi/v2/joke/Any?blacklistFlags=nsfw,racist,sexist&type=twopart"
+        async with ClientSession() as session:
+            data = await get(session, base)
+        data = loads(data)
+        j = Embed(color=0xFFA500)
+        j.set_footer(text=data['category'])
+        j.description = f"```{data['setup']}\n\n{data['delivery']}```"
+        return await ctx.send(embed=j)
 
 
 def setup(bot):
