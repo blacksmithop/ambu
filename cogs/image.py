@@ -129,7 +129,16 @@ class Image(commands.Cog):
                 title="🏕", timestamp=dt.now(), url=f"https://reddit.com/{url['permalink']}"
             ).set_image(url=url['url']))
 
-
+    @commands.command()
+    async def elephant(self, ctx):
+        """
+        Get elephant fox images
+        ?fox
+        """
+        url = f"https://elephant-api.herokuapp.com/pictures/0{r(1,34)}.jpg"
+        await ctx.send(embed=Embed(
+            title="🐘", timestamp=dt.now(), url=url
+        ).set_image(url=url))
 
 def setup(bot):
     bot.add_cog(Image(bot))
