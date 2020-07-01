@@ -6,11 +6,11 @@ from os import getcwd, chdir
 
 
 def setup(bot):
-    bot.add_cog(Economy(bot))
+    bot.add_cog(Plot(bot))
 
 
-class Economy(commands.Cog):
-    """Error handling.
+class Plot(commands.Cog):
+    """Plot
     """
 
     def __init__(self, bot):
