@@ -17,8 +17,8 @@ class HarryPotter(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='char', aliases=['character', 'ch'])
-    async def character(self, ctx, *, name):
+    @commands.command(name='hp', aliases=['harrypotter'])
+    async def hp(self, ctx, *, name):
         name = name.title()
         base = "https://www.potterapi.com/v1/characters/?key=$2a$10$9eZjKMjumTqOfsZ7hk9EOO1u7GOY3jp7X/3deqi1DnwC0pexbJLrK"
         async with ClientSession() as session:
