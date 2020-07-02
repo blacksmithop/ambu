@@ -137,13 +137,25 @@ class Rates(commands.Cog):
 
     @commands.command(name='github', aliases=['gh'])
     async def github(self, ctx, user: str, package: str = None):
-        base = f"https://api.github.com/users/{user}/repos"
+        if package:
+            base = f"https://api.github.com/users/{user}/repos"
+        else:
+            base = f"https://api.github.com/users/{user}"
         async with ClientSession() as session:
             data = await get(session, base)
         data = loads(data)
         if 'message' in data:
             return await ctx.send(f"Could not find the user `{user}`")
         gh = Embed(color=Color.greyple())
+        if not package:
+            gh.set_author(name=data['login'], icon_url="https://i.ibb.co/k9HjpJn/gh.png", url=data['url'])
+            gh.set_thumbnail(url=data['avatar_url'])
+            gh.add_field(name='**Name**', value=data['name'])
+            gh.add_field(name='**Bio**', value=data['bio'])
+            gh.add_field(name="**Created**", value=data['created_at'][:10])
+            gh.add_field(name="**Followers**", value=data['followers'])
+            gh.add_field(name="**Following**", value=data['following'])
+            return await ctx.send(embed=gh)
         if package:
             d = None
             for i in data:
@@ -156,8 +168,8 @@ class Rates(commands.Cog):
             gh.set_author(name=d["owner"]["login"], url=d['html_url'], icon_url="https://i.ibb.co/k9HjpJn/gh.png")
             gh.set_thumbnail(url=d['owner']['avatar_url'])
             gh.add_field(name="**Description**", value=d['description'])
-            gh.add_field(name="**Created**", value=d['created_at'][:9])
-            gh.add_field(name="**Updated**", value=d['updated_at'][:9])
+            gh.add_field(name="**Created**", value=d['created_at'][:10])
+            gh.add_field(name="**Updated**", value=d['updated_at'][:10])
             gh.add_field(name="**Stars** ⭐", value=d['stargazers_count'])
             gh.add_field(name="**Language**", value=d['language'])
             gh.add_field(name="**Forks** 🍴", value=d['forks'])
