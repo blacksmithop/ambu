@@ -148,7 +148,7 @@ class Rates(commands.Cog):
             return await ctx.send(f"Could not find the user `{user}`")
         gh = Embed(color=Color.greyple())
         if not package:
-            gh.set_author(name=data['login'], icon_url="https://i.ibb.co/k9HjpJn/gh.png", url=data['url'])
+            gh.set_author(name=data['login'], icon_url="https://i.ibb.co/k9HjpJn/gh.png", url=data['html_url'])
             gh.set_thumbnail(url=data['avatar_url'])
             gh.add_field(name='**Name**', value=data['name'])
             gh.add_field(name='**Bio**', value=data['bio'])
