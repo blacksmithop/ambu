@@ -110,6 +110,19 @@ class Random(commands.Cog):
         j.description = f"```{data['setup']}\n\n{data['delivery']}```"
         return await ctx.send(embed=j)
 
-
+    @commands.command(name='quote')
+    async def quote(self, ctx):
+        base = "https://favqs.com/api/qotd"
+        async with ClientSession() as session:
+            data = await get(session, base)
+        q = Embed(color=Color.red())
+        data = loads(data)
+        q.set_footer(text=data['qotd_date'][:10])
+        data = data['quote']
+        q.set_author(name=data['author'], url=data['url'], icon_url="https://i.ibb.co/CV66mgM/quote.jpg")
+        q.description = data['body']
+        return await ctx.send(embed=q)
+    
+    
 def setup(bot):
     bot.add_cog(Random(bot))
