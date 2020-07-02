@@ -42,9 +42,14 @@ class Random(commands.Cog):
         return await ctx.send(embed=stat)
 
     @commands.command()
-    async def drink(self, ctx):
+    async def drink(self, ctx,*, name):
+        name = name.title()
+        name = '+'.join(name.split())
         tail = Embed(color=Color.gold())
-        base = "https://www.thecocktaildb.com/api/json/v1/1/random.php"
+        if name:
+            base = f"https://www.thecocktaildb.com/api/json/v1/1/search.php?s={name}"
+        else:
+            base = "https://www.thecocktaildb.com/api/json/v1/1/random.php"
         async with ClientSession() as session:
             data = await get(session, base)
         data = loads(data)
