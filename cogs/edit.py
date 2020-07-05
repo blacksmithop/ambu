@@ -24,8 +24,10 @@ class Edit(commands.Cog):
 
         w, h = draw.textsize(vic.display_name)
         draw.text(((227-w)/2, (222-h)/2), vic.display_name, (0, 0, 0), font=font)
-        img.save("rip.png")
-        file = File("rip.png", filename="image.png")
+        arr = BytesIO()
+        img.save(arr, format='PNG')
+        arr.seek(0)
+        file = File(arr, filename="rip.png")
         await ctx.send(file=file)
 
 
