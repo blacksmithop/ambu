@@ -14,7 +14,11 @@ animals = {
     "devil": "https://i.ibb.co/pzrkb3X/devil.png",
     "werecat": "https://i.ibb.co/pr1pwLR/rakshas.png",
     "garuda": "https://i.ibb.co/m6QBQcQ/garuda.png",
-    "yakshi": "https://i.ibb.co/SPTch0m/yak.png"
+    "yakshi": "https://i.ibb.co/SPTch0m/yak.png",
+    "pegasus": "https://i.ibb.co/TqvGtNK/pegasus.png",
+    "chimera": "https://i.ibb.co/cb8mJ1L/chimera.png",
+    "roc": "https://i.ibb.co/RjNJTB5/roc.png",
+    "djinn": "https://i.ibb.co/FgNjYNv/djinn.png"
         }
 stats = {
     "mammoth": {
@@ -62,10 +66,25 @@ stats = {
         "agi": 3.5,
         "def": 3.5
     },
-    "yakshi": {
-        "str": 2.5,
+    "pegasus": {
+        "str": 1.5,
+        "agi": 7,
+        "def": 1.5
+    },
+    "roc": {
+        "str": 2,
+        "agi": 4,
+        "def": 4
+    },
+    "chimera": {
+        "str": 7,
+        "agi": 1.5,
+        "def": 1.5
+    },
+    "djinn": {
+        "str": 5,
         "agi": 5,
-        "def": 2.5
+        "def": 0
     }
 }
 
