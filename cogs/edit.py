@@ -53,6 +53,8 @@ class Edit(commands.Cog):
 
     @commands.command(name='avatar', aliases=['av'])
     async def avatar(self, ctx, m: Member = None):
+        if m is None:
+            m = ctx.author
         return await ctx.send(embed=Embed(color=m.color, title=m.display_name).set_image(url=m.avatar_url))
 
 
