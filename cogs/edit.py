@@ -53,9 +53,23 @@ class Edit(commands.Cog):
 
     @commands.command(name='avatar', aliases=['av'])
     async def avatar(self, ctx, m: Member = None):
-        if m is None:
-            m = ctx.author
         return await ctx.send(embed=Embed(color=m.color, title=m.display_name).set_image(url=m.avatar_url))
+
+    @commands.command()
+    async def bw(self, ctx, vic: Member = None):
+        if vic is None:
+            vic = ctx.author
+        url = str(vic.avatar_url_as(format="png"))
+        async with ClientSession() as session:
+            url = await get(session, url)
+        file = BytesIO(url)
+        img = Image.open(file)
+        img = img.convert('1')
+        arr = BytesIO()
+        img.save(arr, format='PNG')
+        arr.seek(0)
+        file = File(arr, filename="rip.png")
+        await ctx.send(file=file)
 
 
 def setup(bot):
