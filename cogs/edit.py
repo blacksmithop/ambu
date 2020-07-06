@@ -51,6 +51,10 @@ class Edit(commands.Cog):
         file = File(arr, filename="rip.png")
         await ctx.send(file=file)
 
+    @commands.command(name='avatar', aliases=['av'])
+    async def avatar(self, ctx, m: Member = None):
+        return await ctx.send(embed=Embed(color=m.color, title=m.display_name).set_image(url=m.avatar_url))
+
 
 def setup(bot):
     bot.add_cog(Edit(bot))
