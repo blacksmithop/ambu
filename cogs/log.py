@@ -35,7 +35,7 @@ class Log(commands.Cog):
             channel['infromation'] = "Follow the rules and have a good time!"
         title=channel["message"].format(member=member.mention, server=member.guild.name)
         description=channel["information"]
-        awair cn1.send(f"{title}\ndescription");
+        awair cn1.send(f"{title}\n{description}");
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
