@@ -33,10 +33,9 @@ class Log(commands.Cog):
             channel['message'] = "Welcome {member] to {server}"
         if not channel['information']:
             channel['infromation'] = "Follow the rules and have a good time!"
-        await cnl.send(embed=Embed(
-            title=channel["message"].format(member=member.display_name, server=member.guild.name), color=0x8722EB,
-            description=channel["information"]
-        ).set_author(icon_url=member.avatar_url, name=member.display_name))
+        title=channel["message"].format(member=member.mention, server=member.guild.name)
+        description=channel["information"]
+        awair cn1.send(f"{title}\ndescription");
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
