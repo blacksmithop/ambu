@@ -1,5 +1,5 @@
 from discord.ext import commands
-from discord import Embed, Color, Member, File
+from discord import Embed, Member, File
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageOps
 from urllib import request
@@ -28,7 +28,7 @@ class Edit(commands.Cog):
         draw = ImageDraw.Draw(img)
 
         w, h = draw.textsize(vic.display_name)
-        draw.text(((227-w)/2, (222-h)/2), vic.display_name, (0, 0, 0))
+        draw.text(((227 - w) / 2, (222 - h) / 2), vic.display_name, (0, 0, 0))
         arr = BytesIO()
         img.save(arr, format='PNG')
         arr.seek(0)
@@ -53,6 +53,8 @@ class Edit(commands.Cog):
 
     @commands.command(name='avatar', aliases=['av'])
     async def avatar(self, ctx, m: Member = None):
+        if m is None:
+            m = ctx.author
         return await ctx.send(embed=Embed(color=m.color, title=m.display_name).set_image(url=m.avatar_url))
 
     @commands.command()
