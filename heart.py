@@ -7,6 +7,7 @@ from discord.ext.commands.errors import ExtensionFailed
 from db import BotConfig
 from discord import Game, Status
 from datetime import datetime
+from dotenv import load_dotenv
 
 db = BotConfig()
 basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=ERROR)
@@ -18,6 +19,9 @@ def prefix(bot, message):
 
 
 bot = commands.Bot(command_prefix=prefix, description='Multi-purpose Discord Bot', case_insensitive=True)
+
+load_dotenv()
+bot.webhook_id = e('WEBHOOK')
 
 try:
     token = e('token')
