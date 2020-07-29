@@ -1,6 +1,6 @@
 from discord.ext import commands
 from discord import Embed, Color
-from ambu import db
+import db
 from discord.utils import get
 from aiohttp import ClientSession
 from dotenv import load_dotenv
