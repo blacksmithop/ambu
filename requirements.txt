@@ -9,8 +9,10 @@ lyricsgenius
 spotipy
 Pillow
 psutil
-aionewton
-darksky_weather
 Wikipedia-API
 cryptography
 beem
+aionewton
+darksky_weather
+hivesigner
+python-dotenv
