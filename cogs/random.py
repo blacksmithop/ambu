@@ -2,6 +2,10 @@ from discord.ext import commands
 from discord import Embed, Color
 from aiohttp import ClientSession
 from json import loads
+from dotenv import load_dotenv
+from os import getenv as e
+
+load_dotenv()
 
 
 async def get(session: object, url: object) -> object:
@@ -19,7 +23,7 @@ class Random(commands.Cog):
     @commands.command()
     async def hero(self, ctx, *, name):
         stat = Embed(color=Color.red())
-        base = f"https://www.superheroapi.com/api.php/3194171637307667/search/{name}"
+        base = f"https://www.superheroapi.com/api.php/{e('HERO')}/search/{name}"
         async with ClientSession() as session:
             data = await get(session, base)
         data = loads(data)
@@ -87,7 +91,7 @@ class Random(commands.Cog):
     async def word(self, ctx, *, query):
         query = '+'.join(query.split())
         word = Embed(color=Color.green())
-        head = {"Authorization": "Token f3159a463cde0f06b3fcb2433bcccc79f549b753"}
+        head = {"Authorization": f"Token {e('DICT')}"}
         base = f"https://owlbot.info/api/v4/dictionary/{query}"
         async with ClientSession(headers=head) as session:
             data = await session.get(url=base, headers=head)
@@ -122,7 +126,7 @@ class Random(commands.Cog):
         q.set_author(name=data['author'], url=data['url'], icon_url="https://i.ibb.co/CV66mgM/quote.jpg")
         q.description = data['body']
         return await ctx.send(embed=q)
-    
-    
+
+
 def setup(bot):
     bot.add_cog(Random(bot))
