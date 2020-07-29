@@ -1,9 +1,12 @@
 from discord.ext import commands
 from discord import Embed, Color
-import db
+from ambu import db
 from discord.utils import get
 from aiohttp import ClientSession
+from dotenv import load_dotenv
+from os import getenv as e
 
+load_dotenv()
 
 def setup(bot):
     bot.add_cog(Help(bot))
@@ -50,7 +53,7 @@ class Help(commands.Cog):
                 info.add_field(name=cog, value=f'```{cogs[cog]}```')
             return await ctx.send(embed=info)
 
-        curl = "https://api.npoint.io/c7a2bdd082187ec66f78/"
+        curl = f"https://api.npoint.io/e{'HELP'}/"
         async with ClientSession() as session:
             resp = await session.get(url=f"{curl}/cogs")
             cogs = await resp.json()
