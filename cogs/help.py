@@ -8,6 +8,7 @@ from os import getenv as e
 
 load_dotenv()
 
+
 def setup(bot):
     bot.add_cog(Help(bot))
 
@@ -53,7 +54,7 @@ class Help(commands.Cog):
                 info.add_field(name=cog, value=f'```{cogs[cog]}```')
             return await ctx.send(embed=info)
 
-        curl = f"https://api.npoint.io/e{'HELP'}/"
+        curl = f"https://api.npoint.io/{e('HELP')}/"
         async with ClientSession() as session:
             resp = await session.get(url=f"{curl}/cogs")
             cogs = await resp.json()
@@ -71,7 +72,6 @@ class Help(commands.Cog):
             des = ', '.join(cogs)
             cog2cmd.description = f"```{des}```"
             return await ctx.send(embed=cog2cmd)
-        curl = "https://api.npoint.io/bd2c4881984200163a6c"
         async with ClientSession() as session:
             resp = await session.get(url=f"{curl}/{cog}")
             subcmd = await resp.json()
