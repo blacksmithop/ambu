@@ -32,8 +32,6 @@ class Feed(commands.Cog):
         data = loads(data)
         data = data['data']['children'][0]['data']
         if data['author_fullname'] == self.bot.prev_post:
-            print(1, self.bot.prev_post)
-            print("same post")
             return
         post.set_author(icon_url="https://i.ibb.co/4FLWrf5/community-Icon-sb8lb3clguv01.png",
                         name="r/Kerala", url="https://www.reddit.com/r/Kerala/")
@@ -44,8 +42,7 @@ class Feed(commands.Cog):
         post.add_field(name="Comments 📜", value=data['num_comments'])
         post.add_field(name="Score 💹", value=data['score'])
         self.bot.prev_post = data['author_fullname']
-        print(2, self.bot.prev_post)
-        webhook = "https://ptb.discordapp.com/api/webhooks/727170137458868295/iBlEkK0oxegk4teNZeynNBsBTzH-WtHSNCSYmLHvGL7HE5T_fIfZjmUSnBzivIkPNlMo"
+        webhook = self.bot.webhook_id
         async with ClientSession() as session:
             webhook = Webhook.from_url(webhook, adapter=AsyncWebhookAdapter(session))
             await webhook.send(embed=post, username='r/Kerala Feed')
