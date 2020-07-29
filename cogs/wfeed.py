@@ -42,7 +42,7 @@ class Feed(commands.Cog):
         post.add_field(name="Comments 📜", value=data['num_comments'])
         post.add_field(name="Score 💹", value=data['score'])
         self.bot.prev_news = data['author_fullname']
-        webhook = "https://ptb.discordapp.com/api/webhooks/727170137458868295/iBlEkK0oxegk4teNZeynNBsBTzH-WtHSNCSYmLHvGL7HE5T_fIfZjmUSnBzivIkPNlMo"
+        webhook = self.bot.webhook_id
         async with ClientSession() as session:
             webhook = Webhook.from_url(webhook, adapter=AsyncWebhookAdapter(session))
             await webhook.send(embed=post, username='r/Worldnews Feed')
