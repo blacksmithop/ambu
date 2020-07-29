@@ -39,7 +39,7 @@ class News(commands.Cog):
         post.url = data['url']
         post.description = data['description']
         self.bot.last_time = data['publishedAt']
-        webhook = "https://ptb.discordapp.com/api/webhooks/727170137458868295/iBlEkK0oxegk4teNZeynNBsBTzH-WtHSNCSYmLHvGL7HE5T_fIfZjmUSnBzivIkPNlMo"
+        webhook = self.bot.webhook_id
         async with ClientSession() as session:
             webhook = Webhook.from_url(webhook, adapter=AsyncWebhookAdapter(session))
             await webhook.send(embed=post, username='NEWS Feed')
