@@ -72,6 +72,8 @@ class Help(commands.Cog):
             des = ', '.join(cogs)
             cog2cmd.description = f"```{des}```"
             return await ctx.send(embed=cog2cmd)
+        curl = f"https://api.npoint.io/{e('HELP2')}/"
+
         async with ClientSession() as session:
             resp = await session.get(url=f"{curl}/{cog}")
             subcmd = await resp.json()
