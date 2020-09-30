@@ -14,6 +14,9 @@ basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', lev
 
 
 def prefix(bot, message):
+    if not message.guild:
+        return ['?', f'<@!{bot.user.id}> ', f'<@{bot.user.id}> ']
+    #if user DM's the bot with the prefix- default to command_prefix ( ? )
     p = db.getprefix(id=message.guild.id)
     return [p or '?', f'<@!{bot.user.id}> ', f'<@{bot.user.id}> ']
 
