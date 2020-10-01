@@ -4,7 +4,7 @@ from aiohttp import ClientSession
 from json import loads
 from dotenv import load_dotenv
 from os import getenv as e
-
+from html import unescape
 load_dotenv()
 
 
@@ -83,7 +83,9 @@ class Random(commands.Cog):
         so.set_thumbnail(url="https://i.ibb.co/X4DWhts/so.png")
         data = data['items'][0]
         so.set_footer(text=f"Tags: {','.join(data['tags'])}")
-        so.set_author(name=data['title'], url=data['link'], icon_url=data['owner']['profile_image'])
+        #replace html special characters with actual strings
+        title = unescape(data['title'])
+        so.set_author(name=title, url=data['link'], icon_url=data['owner']['profile_image'])
         so.description = f"Score: {data['score']}\nAnswers: {data['answer_count']}\nBy [{data['owner']['display_name']}]({data['owner']['link']})"
         return await ctx.send(embed=so)
 
