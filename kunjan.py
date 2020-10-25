@@ -11,7 +11,7 @@ intents = Intents.default()
 intents.members = True
 
 bot = commands.Bot(
-    command_prefix=f"{getenv('BOT_PREFIX') or '`'}", intents=intents
+    command_prefix=f"{getenv('BOT_PREFIX') or '.k'}", intents=intents
 )
 bot.remove_command('help')
 
@@ -30,7 +30,7 @@ async def print_stats():
     print(f"Shards: {bot.shard_count or 0}")
     await bot.change_presence(status=Status.online, activity=Game(f"{bot.command_prefix}help"))
 
-"""
+
 @bot.event
 async def on_member_join(member):
     channel = bot.get_channel(618270738247581708)
@@ -40,7 +40,7 @@ async def on_member_join(member):
     welcome.title = f"Welcome {member.name} to {member.guild.name}"
     welcome.description = "Checkout <#621023138645278720> for rules and roles"
     await channel.send(embed=welcome, file=file)
-"""
+
 
 if __name__ == '__main__':
     token = getenv('BOT_TOKEN')
