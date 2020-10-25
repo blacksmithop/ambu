@@ -6,7 +6,7 @@ from os import getenv, listdir
 
 load_dotenv()
 # load the .env file
-intents = Intents.default()
+intents = Intents.all()
 intents.members = True
 
 bot = commands.Bot(
