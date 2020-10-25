@@ -18,7 +18,8 @@ class Help(commands.Cog):
                       usage=""".khelp [cog/command]\n\n.khelp\n-shows the list of cogs
                       \n.khelp Help\n-shows the commands under the cog Help
                       \n.khelp ping\n-shows information about the command ping
-                      \n[argument] = optional\n""")
+                      \n[argument] = optional\n"""
+                      )
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def _help(self, ctx, argument: str = None):
         help_embed = Embed(color=0x000080)
@@ -35,7 +36,7 @@ class Help(commands.Cog):
         if argument.lower() == 'help':
             cmd = self.bot.get_command('help')
 
-        if argument.title() in cogs and not cmd:
+        if argument.title() in cogs and cmd is None:
             help_embed.title = f'Cog: {argument.title()}'
             cog = cogs[argument.title()]
             cmds = cog.get_commands()
@@ -47,12 +48,11 @@ class Help(commands.Cog):
 
         else:
             cogs = list(cogs.values())
+            if not cmd:
+                for cog in cogs:
+                    cog: commands.Cog
 
-            for cog in cogs:
-                cog: commands.Cog
-
-                cmds = cog.get_commands()
-                if not cmd:
+                    cmds = cog.get_commands()
                     cmd = next((cmd for cmd in cmds if cmd.name == argument), None)
 
             if not cmd:
@@ -72,3 +72,9 @@ class Help(commands.Cog):
             return
         else:
             raise error
+
+    @commands.Cog.listener()
+    async def on_command(self, ctx: commands.Context):
+        if await self.bot.is_owner(ctx.author):
+            command = ctx.command
+            command.reset_cooldown(ctx=ctx)
