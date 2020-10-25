@@ -33,7 +33,7 @@ async def print_stats():
 
 @bot.event
 async def on_member_join(member):
-    channel = bot.get_channel(618270738247581708)
+    channel = member.guild.system_channel
     welcome = Embed(color=0x9370db)
     file = File("static/banner.png", filename="banner.png")
     welcome.set_thumbnail(url="attachment://banner.png")
