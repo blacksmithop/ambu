@@ -3,7 +3,7 @@ on: [push]
 
 defaults:
   run:
-    working-directory: /home/ambu/
+    working-directory: /home/ambu/ambu/
     
 jobs:
   build:
