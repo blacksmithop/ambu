@@ -3,7 +3,6 @@ from discord import Embed, File, Status, Game, Intents
 from discord.errors import LoginFailure
 from dotenv import load_dotenv
 from os import getenv, listdir
-from discord.utils import get
 
 load_dotenv()
 # load the .env file
