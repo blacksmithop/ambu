@@ -15,6 +15,7 @@ class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+
     # check ping
     @commands.command(name='ping',
                       help='Get Discord Websocket Latency',
@@ -149,3 +150,4 @@ class Info(commands.Cog):
         stat.set_footer(text="Created at", icon_url=self.bot.user.avatar_url)
         stat.timestamp = guild.created_at
         await ctx.send(embed=stat)
+
