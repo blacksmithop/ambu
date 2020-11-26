@@ -15,7 +15,6 @@ class Info(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-
     # check ping
     @commands.command(name='ping',
                       help='Get Discord Websocket Latency',
@@ -31,7 +30,7 @@ class Info(commands.Cog):
 
     # self roles
     @commands.command(name='dis',
-                      aliases= ['role', 'selfrole'],
+                      aliases=['role', 'selfrole'],
                       help="Get a district role, may only have one role at a time",
                       usage=""".kdis [district]
                       \n.kdis \n-shows a list of district roles
@@ -39,10 +38,6 @@ class Info(commands.Cog):
                       """)
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def _dis(self, ctx, role: str = None):
-        """
-            Get a self role
-            ?sr name
-            """
         member = ctx.author
         file = File("static/map.png", filename="map.png")
 
@@ -85,10 +80,7 @@ class Info(commands.Cog):
                       usage=""".kstats""")
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def stats(self, ctx):
-        """
-            Shows the stats for a Server
-            ?stats
-            """
+
         guild: Guild = ctx.guild
         member: Member
         bots, humans, online, idle, dnd, offline = 0, 0, 0, 0, 0, 0
@@ -109,8 +101,7 @@ class Info(commands.Cog):
         tchannels = guild.text_channels
         vchannels = guild.voice_channels
         info = f"{humans}\n<:online:716606185868099664>{online}\n<:idle:716606098383306772>{idle}\n<:dnd:717626675193577533>{dnd}\n<:offline:716606306223652886>{offline}"
-        stat = Embed()
-        stat.color = 0x40EC96
+        stat = Embed(color=0x40EC96)
         stat.title = f"{guild.name}"
         stat.add_field(name="Members", value=info, inline=True)
         stat.add_field(name="Bots", value=f"{bots}", inline=True)
@@ -150,4 +141,3 @@ class Info(commands.Cog):
         stat.set_footer(text="Created at", icon_url=self.bot.user.avatar_url)
         stat.timestamp = guild.created_at
         await ctx.send(embed=stat)
-

@@ -54,6 +54,8 @@ class Help(commands.Cog):
 
                     cmds = cog.get_commands()
                     cmd = next((cmd for cmd in cmds if cmd.name == argument), None)
+                    if cmd:
+                        break
 
             if not cmd:
                 return await ctx.send(f'Could not find help for {argument}')

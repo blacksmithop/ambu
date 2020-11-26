@@ -84,7 +84,7 @@ class Emoji(commands.Cog):
     # resize gif
     @commands.command(name='gif',
                       help='Resize a gif to emote size',
-                      usage='.kgif url/attachment')
+                      usage='.kgif url (.gif)/attachment')
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True)
     async def _gif(self, ctx, url: str = None):

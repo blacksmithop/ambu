@@ -10,7 +10,7 @@ intents = Intents.all()
 intents.members = True
 
 bot = commands.Bot(
-    command_prefix=f"{getenv('BOT_PREFIX') or '.k'}", intents=intents
+    command_prefix=f"{getenv('BOT_PREFIX')}", intents=intents
 )
 bot.remove_command('help')
 
@@ -32,6 +32,8 @@ async def print_stats():
 
 @bot.event
 async def on_member_join(member):
+    if member.guild.id != 618270738247581706:
+        return
     channel = member.guild.system_channel
     welcome = Embed(color=0x9370db)
     file = File("static/banner.png", filename="banner.png")
