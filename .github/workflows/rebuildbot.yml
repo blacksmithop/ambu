@@ -1,6 +1,9 @@
 name: remote git pull
-on: [push]
+on:
 
+  push:
+    branches:
+      - v3
 defaults:
   run:
     working-directory: /home/ambu/ambu/
