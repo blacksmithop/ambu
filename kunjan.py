@@ -1,5 +1,5 @@
 from discord.ext import commands
-from discord import Embed, File, Status, Game, Intents
+from discord import Embed, File, Status, Streaming, Intents
 from discord.errors import LoginFailure
 from dotenv import load_dotenv
 from os import getenv, listdir
@@ -27,7 +27,7 @@ async def print_stats():
     print(f"Logged in as: {bot.user}")
     print(f"Shard-id: {bot.shard_id or 0}")
     print(f"Shards: {bot.shard_count or 0}")
-    await bot.change_presence(status=Status.online, activity=Game(f"{bot.command_prefix}help"))
+    await bot.change_presence(activity=Streaming(name=".khelp", url=getenv('TWITCH_URL')))
 
 
 @bot.event

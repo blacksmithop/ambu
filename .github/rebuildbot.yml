@@ -1,0 +1,15 @@
+name: remote git pull
+on: [push]
+
+defaults:
+  run:
+    working-directory: /home/ambu/ambu/
+
+jobs:
+  build:
+    name: Build
+    runs-on: self-hosted
+    steps:
+      - run: git pull
+      - run: screen -S ambu -X kill
+      - run: screen -S ambu -dm bash -c "python3 kunjan.py"
