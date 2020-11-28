@@ -15,4 +15,5 @@ jobs:
     steps:
       - run: git pull
       - run: screen -S ambu -X kill
+      - run: sleep 3
       - run: screen -S ambu -dm bash -c "python3 kunjan.py"
