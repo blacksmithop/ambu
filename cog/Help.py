@@ -1,6 +1,6 @@
 from discord.ext import commands
 from discord import Embed
-
+import discord
 
 def setup(bot):
     bot.add_cog(Help(bot))
@@ -72,6 +72,7 @@ class Help(commands.Cog):
     async def on_command_error(self, ctx, error):
         if hasattr(error, 'on_error'):
             return
+        #elif isinstance(error, discord.error.Com)
         else:
             raise error
 
