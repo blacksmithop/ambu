@@ -31,6 +31,15 @@ async def print_stats():
 
 
 @bot.event
+async def on_message(message):
+    """Overloads the default on_message event to check for cache readiness"""
+    if not bot.is_ready:
+        return await message.add_reaction('<a:loading:716609458523865129>')
+
+    await bot.process_commands(message)
+
+
+@bot.event
 async def on_member_join(member):
     if member.guild.id != 618270738247581706:
         return
