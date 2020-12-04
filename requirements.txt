@@ -1,4 +1,5 @@
 discord.py
 python-dotenv
 pillow
-googletrans
+deep_translator
+akinator.py[fast_async]
