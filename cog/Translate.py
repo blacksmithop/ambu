@@ -26,6 +26,7 @@ class Translate(commands.Cog):
     async def _malayalam(self, ctx, *, text: str):
         if len(text.split()) > 100:
             return await ctx.send("Text cannot have more than 100 words")
+
         mal_text = self.translator.translate(text)
         trans = Embed(color=0x50C878)
         trans.timestamp = ctx.message.created_at

@@ -3,3 +3,4 @@ python-dotenv
 pillow
 deep_translator
 akinator.py[fast_async]
+aioredis

@@ -15,6 +15,7 @@ bot = commands.Bot(
 bot.remove_command('help')
 
 # for cogs
+bot.load_extension('jishaku')
 for cog in listdir('cog'):
     if '.py' not in cog:
         continue
